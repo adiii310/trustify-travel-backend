@@ -220,7 +220,9 @@ Returns the account behind the current token. Call it on app start to decide whe
 
 All require `Authorization: Bearer <token>`. `:collection` is one of:
 
-`companies` · `destinations` · `reviews` · `questions` · `enquiries` · `callbacks` · `applications` · `members`
+`companies` · `destinations` · `reviews` · `questions` · `enquiries` · `callbacks` · `applications` · `members` · `metrics`
+
+> `GET /api/admin/metrics` is the editable homepage strip (a normal collection). `GET /api/admin/stats` is the dashboard's computed counters. Similar names, unrelated endpoints.
 
 ### `GET /api/admin/stats`
 
@@ -350,9 +352,13 @@ Every record also has `_id`, `ts` (creation time as a **Unix epoch in millisecon
 | `price` | number | | 3N/4D price per person, INR. Default 0. |
 | `reviews` | number | | Verified review count. Default 0. |
 | `tags` | string[] | | Each max 40 chars. |
+| `featured` | boolean | | Show in the homepage "Top Rated Companies" strip. Default `false`. |
+| `featuredRank` | number | | Position in that strip, **ascending**. Default 0. |
 | `status` | enum | | `published` \| `hidden`. Default `published`. |
 
 Search (`q`) matches `name`, `city`.
+
+`featured` / `featuredRank` are returned by the public `GET /api/companies` too, so the customer site curates its homepage from the list it already fetches. When no company is featured the site falls back to its original top-4-by-score ordering, so clearing every flag restores the default rather than emptying the section. `featuredRank` is not validated for uniqueness — two companies may share a rank, and ties fall back to `score`.
 
 ### `destinations`
 
@@ -369,9 +375,13 @@ Search (`q`) matches `name`, `city`.
 | `dur` | string | | Typical duration, e.g. `"3N/4D"`. |
 | `budget` | string | | Typical budget range. |
 | `c1` / `c2` | string | | Card gradient colours. Default `#2b4463` / `#0a1424`. |
+| `featured` | boolean | | Show in the homepage "Popular Destinations" grid. Default `false`. |
+| `featuredRank` | number | | Position in that grid, **ascending**. Default 0. |
 | `status` | enum | | `published` \| `hidden`. Default `published`. |
 
 Search (`q`) matches `name`.
+
+`featured` / `featuredRank` behave exactly as they do on companies, with the fallback being the original top-8-by-`n` ordering.
 
 ### `reviews`
 
@@ -454,6 +464,24 @@ Search (`q`) matches `company`, `email`, `phone`, `city`.
 | `email` | string | ✅ | **Unique**, validated, lower-cased. |
 
 Search (`q`) matches `name`, `email`.
+
+### `metrics` — the homepage hero strip
+
+The headline figures across the top of the customer homepage. Ordinary CRUD, so an admin can add, reorder, hide or delete entries.
+
+| Field | Type | Required | Notes |
+| --- | --- | --- | --- |
+| `icon` | string | | Emoji, max 16 chars. Default `""`. |
+| `value` | string | ✅ | Display **text**, max 20 — `"450+"`, `"50,000+"`. Not a number. |
+| `label` | string | ✅ | Max 60 — `"Verified Companies"`. |
+| `order` | number | | Position, **ascending**. Default 0; ties fall back to `ts`. |
+| `status` | enum | | `published` \| `hidden`. Default `published`. |
+
+Search (`q`) matches `label`.
+
+**`value` is deliberately free text, not a computed count.** The site shows rounded marketing figures that do not track the row counts in this database; nothing recalculates them, so an admin who wants them accurate has to maintain them. The dashboard's own `liveCompanies` / `members` counters in `GET /api/admin/stats` are the real numbers if you want to show an admin what the true figures are.
+
+Unlike every other public list, `GET /api/metrics` sorts by `order` ascending rather than `ts` descending — it is a fixed strip of positional slots, not a feed. The admin list endpoint still returns `ts` descending like all the others, so sort by `order` yourself when rendering the editor.
 
 ### Admin accounts
 
@@ -559,6 +587,9 @@ try {
 - **Nothing is rate limited on admin routes** — only login (10 per 15 min) and the public forms.
 - **No `OPTIONS` handling needed on your side**; the backend answers preflights once the origin is allowlisted.
 - **Deletes are permanent.** Confirm in the UI before calling `DELETE`.
+- **`featured` / `featuredRank` may be missing from a record, not `false`/`0`.** Lists are read with `.lean()`, which does not apply schema defaults to stored documents, so companies and destinations created before these fields existed return without them. Read with `??` — subtracting two absent ranks gives `NaN`. Writing either field once fixes that record permanently; there is no backfill migration.
+- **`featuredRank` and `metrics.order` are plain numbers with no uniqueness check.** Two records may share a position; the editor is responsible for assigning sensible values. Ties fall back to the collection's natural sort (`score`, `n`, `ts`).
+- **Clearing every `featured` flag does not empty the homepage** — the customer site falls back to its original top-by-score / top-by-coverage ordering. "Nothing featured" means "not configured", not "show nothing".
 
 ---
 

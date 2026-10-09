@@ -19,6 +19,7 @@ const enquiry = require('../modules/enquiry/enquiry.route');
 const callback = require('../modules/callback/callback.route');
 const application = require('../modules/application/application.route');
 const member = require('../modules/member/member.route');
+const metric = require('../modules/metric/metric.route');
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.use('/enquiries', enquiry.publicRouter);
 router.use('/callbacks', callback.publicRouter);
 router.use('/applications', application.publicRouter);
 router.use('/members', member.publicRouter);
+router.use('/metrics', metric.publicRouter);
 
 // --- admin portal ----------------------------------------------------------
 router.use('/admin', dashboardRoutes); // /admin/stats
@@ -46,5 +48,8 @@ router.use('/admin/enquiries', enquiry.adminRouter);
 router.use('/admin/callbacks', callback.adminRouter);
 router.use('/admin/applications', application.adminRouter);
 router.use('/admin/members', member.adminRouter);
+// Note: /admin/metrics is the editable homepage strip; /admin/stats above is
+// the dashboard's computed counters. Different things, deliberately different names.
+router.use('/admin/metrics', metric.adminRouter);
 
 module.exports = router;

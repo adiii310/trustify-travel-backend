@@ -1,6 +1,11 @@
-// Loads the sample companies, destinations and reviews shown on the original site.
+// Loads the sample companies, destinations, reviews and homepage metrics shown
+// on the original site.
 // Usage: npm run seed            (only fills empty collections)
 //        npm run seed -- --fresh (wipes content collections first)
+//
+// Nothing is seeded as `featured`: with no featured records the homepage falls
+// back to its original top-by-score / top-by-coverage ordering, so a fresh
+// install looks exactly as it did before curation existed.
 const mongoose = require('mongoose');
 const env = require('./config/env');
 const connectDB = require('./config/db');
@@ -25,6 +30,14 @@ const destinations = [
   region: 'India', desc: `Verified travel companies for ${name}.`,
 }));
 
+// The homepage hero strip. Display text, not counts — see metric.model.js.
+const metrics = [
+  ['🏢', '450+', 'Verified Companies'],
+  ['📍', '90+', 'Destinations'],
+  ['💬', '50,000+', 'Verified Reviews'],
+  ['🛡️', '9', 'Trust Parameters'],
+].map(([icon, value, label], i) => ({ icon, value, label, order: i }));
+
 const reviews = [
   ['H', 'Aarav S.', 5, '3N/4D Kedarnath', 'Well planned trip. Hotels matched the itinerary exactly and the guide was very helpful.'],
   ['H', 'Neha P.', 5, '3N/4D Kedarnath', 'Transparent pricing with no hidden charges. Support replied on WhatsApp at midnight.'],
@@ -45,6 +58,7 @@ async function fill(Model, docs, fresh) {
   await fill(M.Company, companies, fresh);
   await fill(M.Destination, destinations, fresh);
   await fill(M.Review, reviews, fresh);
+  await fill(M.Metric, metrics, fresh);
   await ensureAdmin();
 })()
   .catch((e) => { console.error(e.message); process.exitCode = 1; })

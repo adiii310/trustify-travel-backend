@@ -235,7 +235,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-top:18px;color:v
 const R = (n,t,d)=>({n,t,r:true,d});   // required field
 const O = (n,t,d)=>({n,t,r:false,d});  // optional field
 
-const RESOURCES = ['companies','destinations','reviews','questions','enquiries','callbacks','applications','members'];
+const RESOURCES = ['companies','destinations','reviews','questions','enquiries','callbacks','applications','members','metrics'];
 
 const GROUPS = [
 {
@@ -263,6 +263,8 @@ const GROUPS = [
     <b>"price"</b>: 10499,
     <b>"reviews"</b>: 2340,
     <b>"tags"</b>: ["Custom Itineraries", "24x7 Support"],
+    <b>"featured"</b>: false,         <i>// picked for the homepage strip</i>
+    <b>"featuredRank"</b>: 0,         <i>// position, ascending</i>
     <b>"status"</b>: "published",
     <b>"ts"</b>: 1759900000000
   }
@@ -270,7 +272,7 @@ const GROUPS = [
   },
   {
     m:'GET', p:'/api/destinations', sum:'List destinations',
-    desc:'Published destinations sorted by <code>n</code> (number of verified companies) descending. Each item carries an extra <code>id</code> field that mirrors <code>slug</code> — link by <code>id</code> when building destination pages.',
+    desc:'Published destinations sorted by <code>n</code> (number of verified companies) descending. Each item carries an extra <code>id</code> field that mirrors <code>slug</code> — link by <code>id</code> when building destination pages. <code>featured</code> / <code>featuredRank</code> curate the homepage grid; when nothing is featured the client falls back to the first 8 of this list.',
     res:[{c:200,msg:'Destinations fetched successfully',s:`[
   {
     <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5b1",
@@ -287,6 +289,23 @@ const GROUPS = [
     <b>"budget"</b>: "₹10,000 - ₹15,000",
     <b>"c1"</b>: "#8a6a52",
     <b>"c2"</b>: "#2b4463",
+    <b>"featured"</b>: false,         <i>// picked for the homepage grid</i>
+    <b>"featuredRank"</b>: 0,         <i>// position, ascending</i>
+    <b>"status"</b>: "published",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'GET', p:'/api/metrics', sum:'List homepage hero metrics',
+    desc:'The headline figures across the top of the customer homepage, published only, sorted by <code>order</code> ascending (not by <code>ts</code> like every other public list — this is a fixed strip, not a feed). <code>value</code> is admin-entered display <i>text</i>, not a computed count: render it verbatim.',
+    res:[{c:200,msg:'Metrics fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5c7",
+    <b>"icon"</b>: "🏢",              <i>// emoji, may be ""</i>
+    <b>"value"</b>: "450+",          <i>// display text, not a number</i>
+    <b>"label"</b>: "Verified Companies",
+    <b>"order"</b>: 0,
     <b>"status"</b>: "published",
     <b>"ts"</b>: 1759900000000
   }
@@ -537,6 +556,8 @@ const SCHEMAS = [
     ['price','number','no','3N/4D price per person in INR. Default 0.'],
     ['reviews','number','no','Verified review count. Default 0.'],
     ['tags','string[]','no','Highlight tags, each max 40 characters.'],
+    ['featured','boolean','no','Show in the homepage "Top Rated Companies" strip. Default <code>false</code>.'],
+    ['featuredRank','number','no','Position in that strip, ascending. Default 0; ties fall back to <code>score</code>.'],
     ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
     ['ts','number','no','Epoch ms. Set on create, used for sorting.']]},
 {n:'Destination', c:'destinations', d:'A destination page on the customer portal.',
@@ -552,6 +573,8 @@ const SCHEMAS = [
     ['budget','string','no','Typical budget range.'],
     ['c1','string','no','Card gradient start colour. Default <code>#2b4463</code>.'],
     ['c2','string','no','Card gradient end colour. Default <code>#0a1424</code>.'],
+    ['featured','boolean','no','Show in the homepage "Popular Destinations" grid. Default <code>false</code>.'],
+    ['featuredRank','number','no','Position in that grid, ascending. Default 0; ties fall back to <code>n</code>.'],
     ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
     ['ts','number','no','Epoch ms.']]},
 {n:'Review', c:'reviews', d:'A traveller review of a company. Moderated unless REVIEW_AUTO_APPROVE is on.',
@@ -593,6 +616,13 @@ const SCHEMAS = [
     ['notes','string','no','Internal notes. Admin-only field.'],['ts','number','no','Epoch ms.']]},
 {n:'Member', c:'members', d:'A traveller who signed in on the customer portal.',
  f:[['name','string','yes','Max 80.'],['email','string','yes','Unique, validated, lower-cased.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Metric', c:'metrics', d:'A headline figure in the customer homepage hero strip. Fully admin-managed — add, reorder, hide or delete.',
+ f:[['icon','string','no','Emoji, max 16. Default <code>""</code>.'],
+    ['value','string','yes','Display <i>text</i>, max 20 — <code>"450+"</code>, <code>"50,000+"</code>. Deliberately not a computed count.'],
+    ['label','string','yes','Max 60, e.g. <code>Verified Companies</code>.'],
+    ['order','number','no','Position, ascending. Default 0; ties fall back to <code>ts</code>.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
     ['ts','number','no','Epoch ms.']]},
 {n:'Admin', c:'—', d:'An admin account. Not exposed as an admin CRUD collection — create accounts with `npm run create-admin`.',
  f:[['name','string','yes',''],['email','string','yes','Unique, lower-cased.'],

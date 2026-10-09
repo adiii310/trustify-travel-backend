@@ -14,6 +14,8 @@ const companySchema = new Schema({
   price: { type: Number, default: 0, min: 0 }, // 3N/4D price per person (INR)
   reviews: { type: Number, default: 0, min: 0 }, // verified review count
   tags: [{ type: String, trim: true, maxlength: 40 }],
+  featured: { type: Boolean, default: false, index: true }, // homepage "Top Rated Companies"
+  featuredRank: { type: Number, default: 0, min: 0 }, // ascending; ties fall back to score
   status: visibilityField,
   ts: tsField,
 }, baseOptions);

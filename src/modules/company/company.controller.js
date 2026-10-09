@@ -6,7 +6,8 @@ const ApiResponse = require('../../utils/ApiResponse');
 
 /** Fields an admin may set on create or update. Everything else is ignored. */
 const EDITABLE_FIELDS = [
-  'k', 'name', 'score', 'rating', 'dests', 'since', 'city', 'exp', 'price', 'reviews', 'tags', 'status',
+  'k', 'name', 'score', 'rating', 'dests', 'since', 'city', 'exp', 'price', 'reviews', 'tags',
+  'featured', 'featuredRank', 'status',
 ];
 
 /** GET /api/companies — published only, highest trust score first. */

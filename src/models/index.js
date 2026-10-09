@@ -13,5 +13,6 @@ module.exports = {
   Callback: require('../modules/callback/callback.model'),
   Application: require('../modules/application/application.model'),
   Member: require('../modules/member/member.model'),
+  Metric: require('../modules/metric/metric.model'),
   Admin: require('../modules/admin/admin.model'),
 };

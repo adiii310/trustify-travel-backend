@@ -6,7 +6,7 @@ const pick = require('../../utils/pick');
 // Fields the admin search box (?q=) looks through, where the collection has them.
 // Only string paths qualify — a regex cannot be cast to a Number, so including
 // one (destinations have a numeric `n`) would fail the whole query with a 400.
-const SEARCH_FIELDS = ['name', 'company', 'n', 'email', 'phone', 'city'];
+const SEARCH_FIELDS = ['name', 'company', 'n', 'email', 'phone', 'city', 'label'];
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const isSearchable = (Model, field) => Model.schema.path(field)?.instance === 'String';
 

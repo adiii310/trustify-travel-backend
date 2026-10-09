@@ -15,6 +15,8 @@ const destinationSchema = new Schema({
   budget: String,
   c1: { type: String, default: '#2b4463' }, // card gradient start
   c2: { type: String, default: '#0a1424' }, // card gradient end
+  featured: { type: Boolean, default: false, index: true }, // homepage "Popular Destinations"
+  featuredRank: { type: Number, default: 0, min: 0 }, // ascending; ties fall back to n
   status: visibilityField,
   ts: tsField,
 }, baseOptions);

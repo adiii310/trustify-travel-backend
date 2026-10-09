@@ -123,6 +123,7 @@ export const api = {
   destinations: ()   => request('GET', '/destinations'),
   reviews:      (c)  => request('GET', c ? `/reviews?c=${encodeURIComponent(c)}` : '/reviews'),
   questions:    (c)  => request('GET', c ? `/questions?c=${encodeURIComponent(c)}` : '/questions'),
+  metrics:      ()   => request('GET', '/metrics'),
 
   // submissions
   enquiry:     (b) => request('POST', '/enquiries', b),
@@ -177,6 +178,8 @@ Every company with `status: "published"`, **sorted by `score` descending** (high
     "price": 10499,                         // 3N/4D price per person, INR
     "reviews": 2340,                        // verified review count
     "tags": ["Custom Itineraries", "24x7 Support", "Great Hotels"],
+    "featured": false,                      // admin picked it for the homepage strip
+    "featuredRank": 0,                      // position within that strip, ascending
     "status": "published",
     "ts": 1791455437171                     // created, epoch ms
   }
@@ -184,6 +187,24 @@ Every company with `status: "published"`, **sorted by `score` descending** (high
 ```
 
 `price` and `reviews` are display figures stored on the company record — `reviews` is **not** a live count of the `reviews` collection.
+
+**Curating the homepage.** `featured` / `featuredRank` let an admin choose which companies fill the homepage's "Top Rated Companies" strip. The endpoint still returns **every** published company in score order, so filter client-side off the list you already have rather than asking for a second one:
+
+```js
+const featured = companies.filter((c) => c.featured)
+                          .sort((a, b) => a.featuredRank - b.featuredRank);
+// Nothing curated yet? Fall back to the score order the API already applied.
+const top = featured.length ? featured : companies.slice(0, 4);
+```
+
+Treat an empty featured set as "not configured", never as "show nothing" — a fresh install has no featured records.
+
+**Both fields may be absent entirely, not `false`/`0`.** Lists are read with Mongoose's `.lean()`, which does not apply schema defaults to already-stored documents, so any company saved before curation existed comes back with no `featured` key at all. The sample above shows them because it is a freshly created record. Read them defensively — `a.featuredRank - b.featuredRank` over untouched records is `NaN`, which silently scrambles the order:
+
+```js
+const rank = (c) => c.featuredRank ?? 0;
+featured.sort((a, b) => rank(a) - rank(b));
+```
 
 ### `GET /api/destinations`
 
@@ -203,11 +224,15 @@ Published destinations, **sorted by `n` descending** (most verified companies fi
     "desc": "Verified travel companies for Kedarnath.",
     "c1": "#8a6a52",                        // card gradient start
     "c2": "#2b4463",                        // card gradient end
+    "featured": false,                      // admin picked it for the homepage grid
+    "featuredRank": 0,                      // position within that grid, ascending
     "status": "published",
     "ts": 1791455437198
   }
 ]
 ```
+
+`featured` / `featuredRank` work exactly as they do on companies: they curate the homepage's "Popular Destinations" grid, the endpoint still returns everything published in `n` order, and an empty featured set means "not configured" — fall back to `slice(0, 8)`.
 
 **Optional fields may be absent entirely, not `null`.** `best`, `diff`, `dur` and `budget` have no defaults, so a destination that was never given them simply has no such key — the sample above is a real response with all four missing. Always read them defensively:
 
@@ -281,6 +306,33 @@ Unanswered questions are public the moment they are posted. Render `a` only when
 A question an admin hides disappears from this endpoint entirely — treat a question vanishing between loads as normal, not an error.
 
 ---
+
+### `GET /api/metrics`
+
+The headline figures in the homepage hero strip, **published only, in `order` ascending**. Unpaged and uncapped; there are only ever a handful.
+
+```jsonc
+// 200 — "Metrics fetched successfully"
+[
+  {
+    "_id": "6ac88014dcf36ec45a795af8",
+    "icon": "🏢",                            // emoji, may be ""
+    "value": "450+",                         // display TEXT, not a number
+    "label": "Verified Companies",
+    "order": 0,                              // ascending; ties fall back to ts
+    "status": "published",
+    "ts": 1791524884557
+  }
+]
+```
+
+**`value` is a string and is admin-entered.** It is deliberately not a live count of anything: the site shows rounded marketing figures (`"450+"`, `"50,000+"`) that do not track the row counts in this database. Render it verbatim — do not parse it, format it, or try to reconcile it with `/api/companies.length`.
+
+The strip is fully admin-managed, so an admin can add, reorder, hide or remove entries. Render whatever arrives rather than assuming four, and **keep your own fallback copy** for an empty response:
+
+```js
+const metrics = (await api.metrics()).length ? await api.metrics() : DEFAULT_STATS;
+```
 
 ## 5. Submission endpoints
 
@@ -439,14 +491,25 @@ Treat it as a newsletter-style capture. If you need real traveller accounts, tha
 ### Load everything a homepage needs
 
 ```js
-const [companies, destinations, reviews] = await Promise.all([
+const [companies, destinations, reviews, metrics] = await Promise.all([
   api.companies(),
   api.destinations(),
   api.reviews(),           // latest approved reviews across all companies
+  api.metrics(),           // the admin-managed hero strip
 ]);
+
+// The homepage strips are curated by an admin, with the old ordering as fallback.
+const pick = (list, count) => {
+  const featured = list.filter((x) => x.featured)
+                       .sort((a, b) => a.featuredRank - b.featuredRank);
+  return featured.length ? featured : list.slice(0, count);
+};
+
+const topCompanies = pick(companies, 4);        // already score desc
+const popularDestinations = pick(destinations, 8); // already `n` desc
 ```
 
-Three independent requests, no auth, no sequencing — fire them in parallel.
+Four independent requests, no auth, no sequencing — fire them in parallel. Note that `companies` and `destinations` are the **same lists** the directory pages use, so a client with a cache needs no extra request to curate the homepage.
 
 ### Build a company detail page
 
@@ -543,6 +606,7 @@ Reads are unlimited, but 30 seconds is plenty — this content changes at human 
 | GET | `/api/destinations` | — | — | Destination array, `n` desc, each with `id` |
 | GET | `/api/reviews?c=` | — | — | Approved review array, newest first, max 500 |
 | GET | `/api/questions?c=` | — | — | Non-hidden question array, newest first, max 500 |
+| GET | `/api/metrics` | — | — | Homepage hero metric array, `order` asc |
 | POST | `/api/enquiries` | — | ✅ | `{ _id, status: "new" }` |
 | POST | `/api/callbacks` | — | ✅ | `{ _id, status: "new" }` |
 | POST | `/api/applications` | — | ✅ | `{ _id, status: "active" }` |

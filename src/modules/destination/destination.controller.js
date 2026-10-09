@@ -5,7 +5,8 @@ const asyncHandler = require('../../utils/asyncHandler');
 const ApiResponse = require('../../utils/ApiResponse');
 
 const EDITABLE_FIELDS = [
-  'slug', 'name', 'region', 'n', 'rating', 'desc', 'best', 'diff', 'dur', 'budget', 'c1', 'c2', 'status',
+  'slug', 'name', 'region', 'n', 'rating', 'desc', 'best', 'diff', 'dur', 'budget', 'c1', 'c2',
+  'featured', 'featuredRank', 'status',
 ];
 
 /**
