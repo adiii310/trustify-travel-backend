@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trustify Trips Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--navy:#0a1424;--navy2:#14233c;--green:#1b6b3a;--green2:#2e9e4f;--gold:#f0a91c;--red:#b4442c;--bg:#f3f5f3;--card:#fff;--ink:#14202b;--mute:#5d6b76;--line:#e1e6e3;--soft:#eef5f0;--goldsoft:#fdf3dc;--redsoft:#f9e9e5;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b;--soft:#16281d;--goldsoft:#2d2412;--redsoft:#2e1a16}}
+:root[data-theme="dark"]{--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b;--soft:#16281d;--goldsoft:#2d2412;--redsoft:#2e1a16}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+html,body{height:100%}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Poppins','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+a{color:inherit}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.app{display:grid;grid-template-columns:236px minmax(0,1fr);min-height:100%;background:linear-gradient(to right,var(--navy) 236px,var(--bg) 236px)}
+.side{background:var(--navy);color:#c7d1db;display:flex;flex-direction:column;position:sticky;top:0;height:100%;max-height:100dvh;overflow-y:auto;padding:18px 14px}
+.brand{display:flex;gap:10px;align-items:center;padding:4px 8px 20px;color:#fff;font-weight:700;line-height:1.15;font-size:15px}
+.brand small{display:block;color:var(--gold);font-size:11px;font-weight:500}
+.nav{display:flex;flex-direction:column;gap:2px}
+.nav button{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:8px;padding:9px 10px;color:inherit;cursor:pointer;font-size:13.5px}
+.nav button:hover{background:rgba(255,255,255,.06)}
+.nav button.on{background:var(--navy2);color:#fff;box-shadow:inset 3px 0 0 var(--gold)}
+.nav .n{margin-left:auto;background:var(--gold);color:#1a1200;font-size:11px;font-weight:600;border-radius:999px;padding:0 7px;min-width:20px;text-align:center}
+.side .foot{margin-top:auto;padding:16px 8px 0;font-size:12px;border-top:1px solid rgba(255,255,255,.08)}
+.side .foot button{background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;margin-top:8px}
+.src{display:flex;gap:8px;align-items:center}.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);flex:none}.dot.live{background:var(--green2)}
+
+.top{display:flex;align-items:center;gap:12px;padding:18px 28px 0}
+.top h1{font-size:22px;font-weight:600}
+.top .r{margin-left:auto;display:flex;gap:10px;align-items:center}
+.burger{display:none;width:38px;height:38px;border:1px solid var(--line);border-radius:8px;background:var(--card);cursor:pointer;place-items:center;font-size:18px;flex:none}
+main{padding:18px 28px 48px;max-width:1280px}
+.sub{color:var(--mute);font-size:13px}
+
+.btn{display:inline-flex;align-items:center;gap:6px;border-radius:7px;padding:8px 14px;font-size:13px;font-weight:500;border:1px solid var(--line);background:var(--card);cursor:pointer;white-space:nowrap}
+.btn.p{background:var(--green);border-color:var(--green);color:#fff}
+.btn.d{color:var(--red)}
+.btn.s{padding:5px 10px;font-size:12px}
+.btn:disabled{opacity:.5;cursor:default}
+.in{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:7px;background:var(--card);font-size:13px}
+textarea.in{resize:vertical}
+
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:20px}
+.panel>h2{font-size:15px;font-weight:600;padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.panel>h2 .sub{font-weight:400}
+.panel>h2 .btn{margin-left:auto}
+.pb{padding:16px 18px}
+
+.queue{display:grid}
+.q{display:flex;align-items:center;gap:16px;padding:14px 18px;border-top:1px solid var(--line)}
+.q:first-child{border-top:0}
+.q b{font-size:26px;font-weight:600;min-width:44px}
+.q b.z{color:var(--mute)}
+.q span{flex:1}
+.q .btn{flex:none}
+
+.pipe{display:flex;gap:0;overflow-x:auto;padding:22px 18px 18px;position:relative}
+.stg{flex:1 0 96px;text-align:center;position:relative;font-size:11.5px;color:var(--mute);cursor:pointer;background:none;border:0;padding:0 4px}
+.stg:before{content:"";position:absolute;top:21px;left:-50%;right:50%;border-top:1.5px dashed var(--gold)}
+.stg:first-child:before{display:none}
+.stg i{position:relative;z-index:1;display:grid;place-items:center;width:44px;height:44px;margin:0 auto 8px;border-radius:50%;border:1.5px solid var(--gold);background:var(--card);font-style:normal;font-weight:600;font-size:16px;color:var(--ink)}
+.stg i.has{background:var(--gold);color:#1a1200}
+
+.board{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(230px,1fr);gap:12px;overflow-x:auto;padding-bottom:10px;align-items:start}
+.col{background:var(--card);border:1px solid var(--line);border-radius:12px;min-height:120px}
+.col h3{font-size:13px;font-weight:600;padding:12px 14px;border-bottom:1px solid var(--line);display:flex;gap:8px;align-items:center}
+.col h3 em{font-style:normal;color:var(--mute);font-weight:400;margin-left:auto}
+.col .cards{padding:10px;display:grid;gap:10px}
+.card{border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--bg)}
+.card b{display:block;font-size:14px}
+.card .sub{font-size:12px}
+.card .acts{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap}
+.card .acts .btn{white-space:normal;text-align:left}.card .acts .btn.p{flex:1 1 100%;justify-content:center;text-align:center}
+.empty{color:var(--mute);font-size:12px;padding:6px 4px}
+
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;min-width:640px}
+th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);font-size:13px;vertical-align:middle}
+th{font-size:12px;font-weight:500;color:var(--mute);background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td .acts{display:flex;gap:6px;justify-content:flex-end}
+.av{width:34px;height:34px;border-radius:8px;background:var(--navy);color:var(--gold);display:grid;place-items:center;font:700 16px Georgia,serif;flex:none}
+.who{display:flex;gap:10px;align-items:center}.who small{display:block;color:var(--mute);font-size:12px}
+.score{display:flex;align-items:center;gap:8px}.score u{display:block;width:70px;height:6px;border-radius:3px;background:var(--line);overflow:hidden}.score u i{display:block;height:100%;background:var(--green2)}
+.pill{display:inline-block;font-size:11.5px;border-radius:999px;padding:2px 10px;font-weight:500;background:var(--soft);color:var(--green)}
+.pill.w{background:var(--goldsoft);color:#8a5a00}.pill.x{background:var(--redsoft);color:var(--red)}.pill.m{background:var(--bg);color:var(--mute)}
+:root[data-theme="dark"] .pill.w{color:var(--gold)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .pill.w{color:var(--gold)}}
+.stars{color:var(--gold);letter-spacing:1px}
+
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 14px;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.bar .in{max-width:260px;margin-left:auto}
+
+.rv{padding:16px 18px;border-top:1px solid var(--line);display:grid;grid-template-columns:1fr auto;gap:8px 16px}
+.rv:first-child{border-top:0}
+.rv p{grid-column:1/-1;font-size:13.5px}
+.rv .acts{display:flex;gap:6px;align-items:start}
+.rv .ans{grid-column:1/-1;display:grid;gap:8px}
+.rv .ans .btn{justify-self:start}
+
+.modal{position:fixed;inset:0;background:rgba(5,10,20,.55);display:none;place-items:center;z-index:40;padding:16px}.modal.on{display:grid}
+.mb{background:var(--card);border-radius:14px;width:100%;max-width:520px;max-height:90vh;overflow:auto}
+.mb h3{font-size:16px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.mb .fs{padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mb label{font-size:12px;color:var(--mute);display:grid;gap:4px}
+.mb label.w{grid-column:1/-1}
+.mb .ft{padding:14px 20px;border-top:1px solid var(--line);display:flex;gap:8px;justify-content:flex-end;align-items:center}
+.mb .err{color:var(--red);font-size:12px;margin-right:auto}
+
+.toast{position:fixed;bottom:calc(20px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:50}.toast.on{opacity:1}
+
+.login{min-height:100%;display:grid;place-items:center;padding:20px;background:var(--navy)}
+.login form{background:var(--card);border-radius:14px;padding:28px;width:100%;max-width:360px;display:grid;gap:12px}
+.login h1{font-size:20px}
+.scrim{display:none}
+
+@media(max-width:900px){
+ .app{grid-template-columns:minmax(0,1fr);background:var(--bg)}
+ .side{position:fixed;top:0;bottom:0;left:0;width:260px;max-height:none;height:auto;z-index:30;transform:translateX(-100%);transition:transform .2s;padding-top:calc(18px + env(safe-area-inset-top,0px));padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+ .app.open .side{transform:none}
+ .app.open .scrim{display:block;position:fixed;inset:0;background:rgba(5,10,20,.45);z-index:25}
+ .burger{display:grid}
+ .top{padding:14px 16px 0}
+ main{padding:14px 16px 40px}
+}
+@media(max-width:600px){
+ .top h1{font-size:18px}
+ .top .r .btn span{display:none}
+ .q{gap:12px;padding:12px 14px;flex-wrap:wrap}.q span{flex:1 1 60%}
+ .bar .in{max-width:none;margin-left:0;flex:1 1 100%}
+ .mb .fs{grid-template-columns:1fr}
+ .rv{grid-template-columns:1fr}.rv .acts{order:3}.rv .ans{order:4}
+ .board{grid-auto-columns:minmax(240px,82vw)}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<script>window.TT_API='/api';</script>
+<div id="root"></div>
+<div class="modal" id="modal"></div>
+<div class="toast" id="toast"></div>
+<script>
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+const esc=x=>String(x==null?'':x).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const inr=n=>'₹'+Number(n||0).toLocaleString('en-IN');
+const num=n=>Number(n||0).toLocaleString('en-IN');
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+const ago=ts=>{if(!ts)return '';const s=(Date.now()-ts)/1000;if(s<3600)return Math.max(1,Math.round(s/60))+' min ago';if(s<86400)return Math.round(s/3600)+' h ago';const d=Math.round(s/86400);return d==1?'yesterday':d+' days ago'};
+const stamp=()=>new Date().toLocaleString('en',{month:'short',year:'numeric'});
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1900)}
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem(k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+const STAGES=["Application","Document Verification","Background Check","Package Analysis","Mystery Booking","Customer Feedback","Final Inspection","Trust Score"];
+const COLS=['companies','destinations','reviews','questions','enquiries','callbacks','applications','members'];
+
+/* ---------- demo data (used when no API is configured) ---------- */
+function seed(){
+ const now=Date.now(),day=86400000,id=uid;
+ const companies=[["H","Holiday Heaven",96,4.8,24,"Jan 2023","Dehradun, Uttarakhand",8,10499,2340,["Custom Itineraries","24x7 Support","Great Hotels","On-time Service"]],["W","Wander India",94,4.7,18,"Mar 2023","Haridwar, Uttarakhand",6,9499,1786,["Well Planned","Good Food","Clean Vehicles","Supportive Staff"]],["M","Mountain Miles",93,4.6,26,"Feb 2023","Rishikesh, Uttarakhand",7,9999,1452,["Experienced Team","Good Stays","Safe Travel","Value for Money"]],["D","Dream Trails",92,4.6,26,"Apr 2023","Dehradun, Uttarakhand",5,11499,980,["Scenic Routes","Small Groups","Local Guides"]]]
+  .map(c=>({_id:id(),k:c[0],name:c[1],score:c[2],rating:c[3],dests:c[4],since:c[5],city:c[6],exp:c[7],price:c[8],reviews:c[9],tags:c[10],status:'published',ts:now-90*day}));
+ const destinations=[["Kedarnath",32,4.7,"#8a6a52","#2b4463"],["Leh Ladakh",28,4.8,"#7d8fa8","#28405f"],["Spiti Valley",18,4.6,"#a7855f","#2c4665"],["Kashmir",26,4.7,"#6f9ac0","#1f3f66"],["Kerala",22,4.6,"#2f9c8a","#14506a"],["Thailand",15,4.5,"#a56cb0","#2a2f6b"],["Vietnam",14,4.5,"#5aa68f","#1c4a5e"],["Bali",12,4.5,"#c58a5a","#294a6a"]]
+  .map(d=>({_id:id(),slug:d[0].toLowerCase().replace(/ /g,'-'),name:d[0],n:d[1],rating:d[2],region:'India',desc:'Verified travel companies for '+d[0]+'.',best:'May – Oct',diff:'Moderate',dur:'4–6 days',budget:'₹10k – ₹25k',c1:d[3],c2:d[4],status:'published',ts:now-120*day}));
+ const reviews=[["H","Aarav S.",5,"3N/4D Kedarnath","Well planned trip. Hotels matched the itinerary exactly and the guide was very helpful.","approved",20],["H","Neha P.",5,"3N/4D Kedarnath","Transparent pricing with no hidden charges. Support replied on WhatsApp at midnight.","approved",25],["W","Rohit M.",4,"4N/5D Kedarnath + Badrinath","Good stays and food. Pickup was 30 minutes late but they kept us informed.","pending",1],["M","Kavya R.",5,"3N/4D Kedarnath","Safe, well-managed trip for my parents. Would book again.","pending",2],["D","Vikram J.",2,"Char Dham","Driver changed twice and the hotel in Guptkashi was not the one promised.","pending",0.3],["W","Sana K.",1,"","Best deal call 98xxxxxx for cheap packages!!!","pending",0.1]]
+  .map(r=>({_id:id(),c:r[0],n:r[1],r:r[2],trip:r[3],t:r[4],status:r[5],d:stamp(),ts:now-r[6]*day}));
+ const questions=[["H","Priya","Do you arrange pony or palki for senior citizens?","",3],["M","Kunal","Is the helicopter booking included in the price?","No, helicopter tickets are booked separately through the IRCTC portal. We help you with the booking.",6],["W","Meera","Can we start from Delhi instead of Haridwar?","",0.5]]
+  .map(q=>({_id:id(),c:q[0],n:q[1],q:q[2],a:q[3],status:q[3]?'answered':'open',ts:now-q[4]*day}));
+ const enquiries=[["Rahul Mehta","9876500011","Holiday Heaven","H","3N/4D Kedarnath",4,"Travelling with parents, need ground floor rooms.","new",0.2],["Ananya Rao","9822012345","Mountain Miles","M","Kedarnath Heli Package",2,"","new",0.9],["Dev Patel","9898989898","Wander India","W","",6,"Group of friends, budget around 10k each.","contacted",3],["Isha Shah","9712233445","Holiday Heaven","H","4N/5D Kedarnath + Badrinath",3,"","booked",8]]
+  .map(e=>({_id:id(),name:e[0],phone:e[1],company:e[2],ck:e[3],pkg:e[4],pax:e[5],msg:e[6],date:new Date(now+30*day).toISOString().slice(0,10),status:e[7],notes:'',ts:now-e[8]*day}));
+ const callbacks=[["Sunil Verma","9825011122","Evening","new",0.1],["Pooja Nair","9900112233","Morning","called",2]]
+  .map(c=>({_id:id(),name:c[0],phone:c[1],slot:c[2],status:c[3],notes:'',ts:now-c[4]*day}));
+ const applications=[["Himalayan Hikes","Arjun Negi","arjun@himhikes.in","9411000001","Uttarkashi",9,0,1],["Char Dham Connect","Ritu Bhatt","ritu@cdconnect.in","9411000002","Haridwar",4,1,4],["Peak Pilgrims","Manoj Rawat","manoj@peakpilgrims.com","9411000003","Rishikesh",11,3,9],["Valley Voyages","Sneha Joshi","sneha@valleyvoyages.in","9411000004","Dehradun",6,4,6],["Sky Trails India","Kabir Sen","kabir@skytrails.in","9411000005","Delhi",3,6,12],["Ganga Getaways","Nidhi Pant","nidhi@gangagetaways.in","9411000006","Rishikesh",7,7,2]]
+  .map(a=>({_id:id(),company:a[0],contact:a[1],email:a[2],phone:a[3],city:a[4],years:a[5],stage:a[6],status:'active',notes:'',stageTs:now-a[7]*day,ts:now-(a[7]+a[6]*5)*day}));
+ const members=[["Aarav Shah","aarav@example.com",40],["Neha Patel","neha@example.com",22],["Rohit Mehta","rohit@example.com",5]].map(m=>({_id:id(),name:m[0],email:m[1],ts:now-m[2]*day}));
+ return {companies,destinations,reviews,questions,enquiries,callbacks,applications,members};
+}
+
+/* ---------- data layer: local demo store or REST API ---------- */
+const API=window.TT_API||'';
+let TOKEN=LS.get('tta_token','');
+let MEM=LS.get('tta_demo_v1',null)||seed();
+const saveMem=()=>LS.set('tta_demo_v1',MEM);
+const Local={
+ live:false,
+ async list(c){return {items:[...(MEM[c]||[])].sort((a,b)=>(b.ts||0)-(a.ts||0))}},
+ async create(c,d){const x=Object.assign({_id:uid(),ts:Date.now()},d);(MEM[c]=MEM[c]||[]).unshift(x);saveMem();return x},
+ async update(c,id,d){const x=MEM[c].find(i=>i._id==id);if(!x)throw new Error('Record not found');Object.assign(x,d);saveMem();return x},
+ async remove(c,id){MEM[c]=MEM[c].filter(i=>i._id!=id);saveMem();return {ok:true}},
+ async publish(id,d){const a=MEM.applications.find(i=>i._id==id);if(MEM.companies.some(c=>c.k==d.k))throw new Error('Short code '+d.k+' is already used by another company');
+  const co=await Local.create('companies',Object.assign({name:a.company,city:a.city,exp:a.years,reviews:0,rating:0,status:'published'},d));a.status='published';a.companyId=co._id;saveMem();return co}
+};
+const Rest={
+ live:true,
+ /* Every API response is { success, statusCode, message, data } — unwrap data, surface message. */
+ async req(m,u,b){const r=await fetch(API+u,{method:m,headers:Object.assign({'Content-Type':'application/json'},TOKEN?{Authorization:'Bearer '+TOKEN}:{}),body:b?JSON.stringify(b):undefined});
+  const j=await r.json().catch(()=>({}));
+  if(r.status==401&&u!='/auth/login'){TOKEN='';LS.set('tta_token','');renderLogin();throw new Error('Your session expired. Sign in again.')}
+  if(!r.ok)throw new Error(j.message||('Request failed with status '+r.status));return j.data},
+ list:c=>Rest.req('GET','/admin/'+c+'?limit=1000'),
+ create:(c,d)=>Rest.req('POST','/admin/'+c,d),
+ update:(c,id,d)=>Rest.req('PATCH','/admin/'+c+'/'+id,d),
+ remove:(c,id)=>Rest.req('DELETE','/admin/'+c+'/'+id),
+ publish:(id,d)=>Rest.req('POST','/admin/applications/'+id+'/publish',d)
+};
+const store=API?Rest:Local;
+
+/* ---------- state ---------- */
+let D={};COLS.forEach(c=>D[c]=[]);
+let view=LS.get('tta_view','overview'),ME=null;
+const F={reviews:'pending',questions:'open',leads:'enquiries',companies:'',destinations:''};
+const coName=k=>(D.companies.find(c=>c.k==k)||{}).name||k||'—';
+
+async function loadAll(){
+ const r=await Promise.all(COLS.map(c=>store.list(c).then(x=>x.items||[]).catch(e=>{toast(e.message);return []})));
+ COLS.forEach((c,i)=>D[c]=r[i]);render();
+}
+async function act(fn,ok,...reloadCols){try{await fn();if(ok)toast(ok);await Promise.all(reloadCols.map(async c=>{D[c]=(await store.list(c)).items||[]}));render()}catch(e){toast(e.message)}}
+
+/* ---------- counts ---------- */
+const cnt=()=>({
+ reviews:D.reviews.filter(r=>r.status=='pending').length,
+ questions:D.questions.filter(q=>q.status=='open').length,
+ leads:D.enquiries.filter(e=>e.status=='new').length+D.callbacks.filter(c=>c.status=='new').length,
+ pipeline:D.applications.filter(a=>a.status=='active').length
+});
+
+/* ---------- shell ---------- */
+const NAV=[['overview','Overview'],['pipeline','Verification','pipeline'],['companies','Companies'],['destinations','Destinations'],['reviews','Reviews','reviews'],['questions','Questions','questions'],['leads','Leads','leads'],['members','Members']];
+const TITLES={overview:'Overview',pipeline:'Verification pipeline',companies:'Companies',destinations:'Destinations',reviews:'Review moderation',questions:'Traveller questions',leads:'Leads',members:'Members'};
+function render(){
+ const k=cnt();
+ $('#root').innerHTML=`<div class="app" id="app"><div class="scrim" data-close></div>
+ <aside class="side" aria-label="Admin navigation"><div class="brand">🛡️<div>TRUSTIFY TRIPS<small>Admin</small></div></div>
+ <nav class="nav">${NAV.map(n=>`<button class="${view==n[0]?'on':''}" data-view="${n[0]}">${n[1]}${n[2]&&k[n[2]]?`<span class="n">${k[n[2]]}</span>`:''}</button>`).join('')}</nav>
+ <div class="foot"><div class="src"><span class="dot ${store.live?'live':''}"></span>${store.live?'Connected to API':'Demo data in this browser'}</div>
+ ${store.live?`<div style="margin-top:6px">${esc(ME?ME.email:'')}</div><button data-logout>Sign out</button>`:`<button data-reset>Reset demo data</button>`}</div></aside>
+ <div><div class="top"><button class="burger" data-burger aria-label="Open menu">☰</button><h1>${TITLES[view]}</h1><div class="r">${topAction()}</div></div>
+ <main>${(VIEWS[view]||VIEWS.overview)()}</main></div></div>`;
+}
+function topAction(){
+ if(view=='companies')return `<button class="btn p" data-new="companies">+ <span>Add company</span></button>`;
+ if(view=='destinations')return `<button class="btn p" data-new="destinations">+ <span>Add destination</span></button>`;
+ if(view=='pipeline')return `<button class="btn p" data-new="applications">+ <span>Add application</span></button>`;
+ return '';
+}
+
+/* ---------- views ---------- */
+const VIEWS={};
+VIEWS.overview=()=>{
+ const k=cnt(),st=STAGES.map((_,i)=>D.applications.filter(a=>a.status=='active'&&a.stage==i).length);
+ const q=[[k.reviews,'reviews waiting for moderation','reviews','Moderate'],[k.questions,'traveller questions without an answer','questions','Answer'],[k.leads,'new enquiries and call-back requests','leads','Open leads'],[k.pipeline,'companies going through verification','pipeline','Open pipeline']];
+ const leads=[...D.enquiries.map(e=>({...e,kind:'Enquiry',what:e.company+(e.pkg?' · '+e.pkg:'')})),...D.callbacks.map(c=>({...c,kind:'Call back',what:'Best time: '+(c.slot||'any')}))].sort((a,b)=>b.ts-a.ts).slice(0,5);
+ return `<div class="panel"><h2>Waiting on you</h2><div class="queue">${q.map(x=>`<div class="q"><b class="${x[0]?'':'z'}">${x[0]}</b><span>${x[1]}</span><button class="btn s" data-view="${x[2]}">${x[3]}</button></div>`).join('')}</div></div>
+ <div class="panel"><h2>Verification pipeline <span class="sub">Companies at each step</span></h2><div class="pipe">${STAGES.map((s,i)=>`<button class="stg" data-view="pipeline"><i class="${st[i]?'has':''}">${st[i]}</i>${s}</button>`).join('')}</div></div>
+ <div class="panel"><h2>Latest leads<button class="btn s" data-view="leads">See all</button></h2>${leads.length?`<div class="tw"><table><tr><th>Name</th><th>Type</th><th>Details</th><th>Phone</th><th>Received</th><th>Status</th></tr>${leads.map(l=>`<tr><td>${esc(l.name)}</td><td>${l.kind}</td><td>${esc(l.what)}</td><td><a href="tel:${esc(l.phone)}">${esc(l.phone)}</a></td><td>${ago(l.ts)}</td><td>${leadPill(l.status)}</td></tr>`).join('')}</table></div>`:'<div class="pb sub">No leads yet. Enquiries and call-back requests from the site appear here.</div>'}</div>
+ <p class="sub">Live on the site: ${D.companies.filter(c=>c.status!='hidden').length} companies, ${D.destinations.filter(d=>d.status!='hidden').length} destinations, ${D.reviews.filter(r=>r.status=='approved').length} approved reviews, ${D.members.length} members.</p>`;
+};
+const leadPill=s=>`<span class="pill ${s=='new'?'w':s=='closed'?'m':''}">${esc(s)}</span>`;
+
+VIEWS.pipeline=()=>{
+ const act=D.applications.filter(a=>a.status=='active'),done=D.applications.filter(a=>a.status!='active');
+ return `<p class="sub" style="margin-bottom:14px">Move each applicant through the same steps travellers see on the site. At the last step, publish them as a verified company with their trust score.</p>
+ <div class="board">${STAGES.map((s,i)=>{const l=act.filter(a=>a.stage==i);return `<section class="col"><h3>${i+1}. ${s}<em>${l.length}</em></h3><div class="cards">${l.map(a=>`<div class="card"><b>${esc(a.company)}</b><div class="sub">${esc(a.contact)} · ${esc(a.city||'—')} · ${a.years||0} yrs</div><div class="sub">Entered this step ${ago(a.stageTs||a.ts)}</div>
+ <div class="acts">${i<7?`<button class="btn s p" data-adv="${a._id}">Move to ${STAGES[i+1]}</button>`:`<button class="btn s p" data-pub="${a._id}">Publish company</button>`}${i>0?`<button class="btn s" data-back="${a._id}" aria-label="Move back a step">Back</button>`:''}<button class="btn s" data-edit="applications:${a._id}">Details</button><button class="btn s d" data-rej="${a._id}">Reject</button></div></div>`).join('')||'<div class="empty">No companies at this step.</div>'}</div></section>`}).join('')}</div>
+ ${done.length?`<div class="panel" style="margin-top:20px"><h2>Closed applications <span class="sub">${done.length}</span></h2><div class="tw"><table><tr><th>Company</th><th>Contact</th><th>Outcome</th><th>Applied</th><th></th></tr>${done.map(a=>`<tr><td>${esc(a.company)}</td><td>${esc(a.email||a.phone)}</td><td><span class="pill ${a.status=='rejected'?'x':''}">${esc(a.status)}</span></td><td>${ago(a.ts)}</td><td><div class="acts">${a.status=='rejected'?`<button class="btn s" data-reopen="${a._id}">Reopen</button>`:''}<button class="btn s d" data-del="applications:${a._id}">Delete</button></div></td></tr>`).join('')}</table></div></div>`:''}`;
+};
+
+VIEWS.companies=()=>{
+ const q=F.companies.toLowerCase(),l=D.companies.filter(c=>!q||(c.name+' '+c.city).toLowerCase().includes(q)).sort((a,b)=>b.score-a.score);
+ return `<div class="bar"><input class="in" placeholder="Search companies" data-filter="companies" value="${esc(F.companies)}" aria-label="Search companies"></div>
+ <div class="panel">${l.length?`<div class="tw"><table><tr><th>Company</th><th>Trust score</th><th>Rating</th><th>From</th><th>Reviews</th><th>Status</th><th></th></tr>${l.map(c=>`<tr><td><div class="who"><div class="av">${esc(c.k)}</div><div>${esc(c.name)}<small>${esc(c.city||'')}</small></div></div></td><td><div class="score">${c.score}<u><i style="width:${Math.min(100,c.score)}%"></i></u></div></td><td><span class="stars">★</span> ${c.rating||0}</td><td>${inr(c.price)}</td><td>${num(c.reviews)}</td><td><span class="pill ${c.status=='hidden'?'m':''}">${c.status=='hidden'?'hidden':'live'}</span></td>
+ <td><div class="acts"><button class="btn s" data-edit="companies:${c._id}">Edit</button><button class="btn s" data-toggle="companies:${c._id}">${c.status=='hidden'?'Show':'Hide'}</button><button class="btn s d" data-del="companies:${c._id}">Delete</button></div></td></tr>`).join('')}</table></div>`:`<div class="pb sub">${q?'No companies match “'+esc(F.companies)+'”.':'No companies yet. Add one, or publish an applicant from the verification pipeline.'}</div>`}</div>`;
+};
+
+VIEWS.destinations=()=>{
+ const q=F.destinations.toLowerCase(),l=D.destinations.filter(d=>!q||(d.name+' '+d.region).toLowerCase().includes(q)).sort((a,b)=>b.n-a.n);
+ return `<div class="bar"><input class="in" placeholder="Search destinations" data-filter="destinations" value="${esc(F.destinations)}" aria-label="Search destinations"></div>
+ <div class="panel">${l.length?`<div class="tw"><table><tr><th>Destination</th><th>Companies</th><th>Avg rating</th><th>Best time</th><th>Budget</th><th>Status</th><th></th></tr>${l.map(d=>`<tr><td><div class="who"><div class="av" style="background:linear-gradient(160deg,${esc(d.c1||'#555')},${esc(d.c2||'#222')});color:#fff">${esc((d.name||'?')[0])}</div><div>${esc(d.name)}<small>${esc(d.region||'')}</small></div></div></td><td>${d.n||0}</td><td><span class="stars">★</span> ${d.rating||0}</td><td>${esc(d.best||'—')}</td><td>${esc(d.budget||'—')}</td><td><span class="pill ${d.status=='hidden'?'m':''}">${d.status=='hidden'?'hidden':'live'}</span></td>
+ <td><div class="acts"><button class="btn s" data-edit="destinations:${d._id}">Edit</button><button class="btn s" data-toggle="destinations:${d._id}">${d.status=='hidden'?'Show':'Hide'}</button><button class="btn s d" data-del="destinations:${d._id}">Delete</button></div></td></tr>`).join('')}</table></div>`:`<div class="pb sub">${q?'No destinations match “'+esc(F.destinations)+'”.':'No destinations yet. Add the first one.'}</div>`}</div>`;
+};
+
+VIEWS.reviews=()=>{
+ const f=F.reviews,l=D.reviews.filter(r=>f=='all'||r.status==f);
+ const c=s=>D.reviews.filter(r=>r.status==s).length;
+ return `<div class="bar">${[['pending','Waiting'],['approved','Approved'],['rejected','Rejected'],['all','All']].map(x=>`<button class="chip ${f==x[0]?'on':''}" data-f="reviews:${x[0]}">${x[1]}${x[0]!='all'?' ('+c(x[0])+')':''}</button>`).join('')}</div>
+ <div class="panel">${l.map(r=>`<div class="rv"><div><b>${esc(r.n)}</b> <span class="stars">${'★'.repeat(r.r||0)}<span style="color:var(--line)">${'★'.repeat(5-(r.r||0))}</span></span><div class="sub">${esc(coName(r.c))}${r.trip?' · '+esc(r.trip):''} · ${ago(r.ts)}</div></div>
+ <div class="acts">${r.status!='approved'?`<button class="btn s p" data-rs="${r._id}:approved">Approve</button>`:''}${r.status!='rejected'?`<button class="btn s" data-rs="${r._id}:rejected">Reject</button>`:''}<button class="btn s d" data-del="reviews:${r._id}">Delete</button></div><p>${esc(r.t)}</p></div>`).join('')||`<div class="pb sub">${f=='pending'?'Nothing to moderate. New reviews from travellers appear here before they go live.':'No reviews in this list.'}</div>`}</div>`;
+};
+
+VIEWS.questions=()=>{
+ const f=F.questions,l=D.questions.filter(q=>f=='all'||q.status==f);
+ return `<div class="bar">${[['open','Unanswered'],['answered','Answered'],['hidden','Hidden'],['all','All']].map(x=>`<button class="chip ${f==x[0]?'on':''}" data-f="questions:${x[0]}">${x[1]}</button>`).join('')}</div>
+ <div class="panel">${l.map(q=>`<div class="rv"><div><b>${esc(q.n)}</b> asked about ${esc(coName(q.c))}<div class="sub">${ago(q.ts)}</div></div>
+ <div class="acts"><button class="btn s" data-qs="${q._id}:${q.status=='hidden'?(q.a?'answered':'open'):'hidden'}">${q.status=='hidden'?'Show':'Hide'}</button><button class="btn s d" data-del="questions:${q._id}">Delete</button></div>
+ <p>${esc(q.q)}</p><div class="ans"><textarea class="in" rows="2" id="a_${q._id}" placeholder="Write the answer travellers will see" aria-label="Answer">${esc(q.a||'')}</textarea><button class="btn s p" data-ans="${q._id}">${q.a?'Update answer':'Publish answer'}</button></div></div>`).join('')||`<div class="pb sub">${f=='open'?'Every question has an answer.':'No questions in this list.'}</div>`}</div>`;
+};
+
+const ENQ_ST=['new','contacted','booked','closed'],CB_ST=['new','called','closed'];
+VIEWS.leads=()=>{
+ const t=F.leads,isE=t=='enquiries',l=D[t],st=isE?ENQ_ST:CB_ST;
+ return `<div class="bar"><button class="chip ${isE?'on':''}" data-f="leads:enquiries">Enquiries (${D.enquiries.length})</button><button class="chip ${!isE?'on':''}" data-f="leads:callbacks">Call backs (${D.callbacks.length})</button></div>
+ <div class="panel">${l.length?`<div class="tw"><table><tr><th>Name</th><th>Phone</th>${isE?'<th>Company and package</th><th>Travel date</th><th>Travellers</th>':'<th>Best time</th>'}<th>Received</th><th>Status</th><th></th></tr>
+ ${l.map(e=>`<tr><td>${esc(e.name)}${e.msg?`<div class="sub">${esc(e.msg)}</div>`:''}${e.notes?`<div class="sub">Note: ${esc(e.notes)}</div>`:''}</td><td><a href="tel:${esc(e.phone)}">${esc(e.phone)}</a></td>${isE?`<td>${esc(e.company||'—')}${e.pkg?`<div class="sub">${esc(e.pkg)}</div>`:''}</td><td>${esc(e.date||'—')}</td><td>${e.pax||'—'}</td>`:`<td>${esc(e.slot||'Any')}</td>`}<td>${ago(e.ts)}</td>
+ <td><select class="in" style="width:auto;padding:5px 8px" data-ls="${t}:${e._id}" aria-label="Status">${st.map(s=>`<option ${s==e.status?'selected':''}>${s}</option>`).join('')}</select></td><td><div class="acts"><button class="btn s" data-edit="${t}:${e._id}">Notes</button><button class="btn s d" data-del="${t}:${e._id}">Delete</button></div></td></tr>`).join('')}</table></div>`:`<div class="pb sub">No ${isE?'enquiries':'call-back requests'} yet.</div>`}</div>`;
+};
+
+VIEWS.members=()=>`<div class="panel">${D.members.length?`<div class="tw"><table><tr><th>Name</th><th>Email</th><th>Joined</th><th></th></tr>${D.members.map(m=>`<tr><td>${esc(m.name)}</td><td>${esc(m.email)}</td><td>${ago(m.ts)}</td><td><div class="acts"><button class="btn s d" data-del="members:${m._id}">Remove</button></div></td></tr>`).join('')}</table></div>`:'<div class="pb sub">No members yet. Travellers who sign in on the site appear here.</div>'}</div>`;
+
+/* ---------- forms ---------- */
+const FORMS={
+ companies:{t:'company',f:[['name','Company name','text',1,'w'],['k','Short code (shown as logo)','text',1],['city','Head office','text'],['score','Trust score (0–100)','number',1],['rating','Average rating (0–5)','number'],['price','3N/4D price per person (₹)','number'],['exp','Years in business','number'],['reviews','Verified reviews','number'],['dests','Destinations covered','number'],['since','Verified since','text'],['tags','Highlights, separated by commas','tags',0,'w'],['status','Visibility','select',0,'',['published','hidden']]]},
+ destinations:{t:'destination',f:[['name','Name','text',1],['slug','URL name','text',1],['region','Region','text'],['n','Verified companies','number'],['rating','Average rating','number'],['best','Best time to visit','text'],['diff','Difficulty','text'],['dur','Ideal duration','text'],['budget','Budget','text'],['c1','Card colour 1','color'],['c2','Card colour 2','color'],['status','Visibility','select',0,'',['published','hidden']],['desc','Description','textarea',0,'w']]},
+ applications:{t:'application',f:[['company','Company name','text',1,'w'],['contact','Contact person','text',1],['email','Email','email',1],['phone','Phone','tel',1],['city','City','text'],['years','Years in business','number'],['notes','Internal notes','textarea',0,'w']]},
+ enquiries:{t:'enquiry',f:[['notes','Internal notes','textarea',0,'w']]},
+ callbacks:{t:'call back',f:[['notes','Internal notes','textarea',0,'w']]},
+ publish:{t:'',f:[['k','Short code (shown as logo)','text',1],['score','Trust score (0–100)','number',1],['price','3N/4D price per person (₹)','number'],['dests','Destinations covered','number'],['since','Verified since','text'],['tags','Highlights, separated by commas','tags',0,'w']]}
+};
+const NUMS=['score','rating','price','exp','reviews','dests','n','years','pax'];
+function field(f,v){const id='f_'+f[0],val=v==null?'':(Array.isArray(v)?v.join(', '):v),req=f[3]?' *':'';
+ const ctl=f[2]=='textarea'?`<textarea class="in" id="${id}" rows="3">${esc(val)}</textarea>`:f[2]=='select'?`<select class="in" id="${id}">${f[5].map(o=>`<option ${o==val?'selected':''}>${o}</option>`).join('')}</select>`:`<input class="in" id="${id}" type="${f[2]=='tags'?'text':f[2]}" value="${esc(val||(f[2]=='color'?'#2b4463':''))}"${f[2]=='number'?' step="any"':''}>`;
+ return `<label class="${f[4]||''}">${f[1]}${req}${ctl}</label>`}
+function openForm(kind,rec,title,onSubmit){
+ const spec=FORMS[kind];
+ $('#modal').innerHTML=`<div class="mb" role="dialog" aria-modal="true" aria-labelledby="mt"><h3 id="mt">${esc(title||(rec&&rec._id?'Edit '+spec.t:'Add '+spec.t))}</h3><div class="fs">${spec.f.map(f=>field(f,rec?rec[f[0]]:undefined)).join('')}</div><div class="ft"><span class="err" id="ferr"></span><button class="btn" data-close>Cancel</button><button class="btn p" id="fsub">Save</button></div></div>`;
+ $('#modal').classList.add('on');const first=$('#modal .in');if(first)first.focus();
+ $('#fsub').onclick=async()=>{const d={};
+  for(const f of spec.f){let v=$('#f_'+f[0]).value.trim();if(f[3]&&v===''){$('#ferr').textContent=f[1]+' is required.';return}
+   if(f[2]=='tags')v=v?v.split(',').map(s=>s.trim()).filter(Boolean):[];else if(NUMS.includes(f[0]))v=v===''?0:Number(v);
+   if(f[0]=='k')v=v.toUpperCase().slice(0,3);if(f[0]=='slug')v=v.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');d[f[0]]=v}
+  if(d.score!=null&&(d.score<0||d.score>100)){$('#ferr').textContent='Trust score must be between 0 and 100.';return}
+  if(d.rating!=null&&(d.rating<0||d.rating>5)){$('#ferr').textContent='Rating must be between 0 and 5.';return}
+  $('#fsub').disabled=true;try{await onSubmit(d);closeM()}catch(e){$('#ferr').textContent=e.message;$('#fsub').disabled=false}};
+}
+function closeM(){$('#modal').classList.remove('on');$('#modal').innerHTML=''}
+function confirmBox(msg,label,fn){$('#modal').innerHTML=`<div class="mb" role="alertdialog" aria-modal="true"><h3>${esc(msg)}</h3><div class="ft"><button class="btn" data-close>Cancel</button><button class="btn p" id="cok" style="background:var(--red);border-color:var(--red)">${label}</button></div></div>`;$('#modal').classList.add('on');$('#cok').focus();$('#cok').onclick=()=>{closeM();fn()}}
+
+/* ---------- events ---------- */
+const find=(c,id)=>D[c].find(x=>x._id==id);
+document.addEventListener('click',e=>{
+ const t=e.target.closest('button,[data-close]');if(!t)return;const ds=t.dataset;
+ if('close' in ds){closeM();$('#app')&&$('#app').classList.remove('open');return}
+ if('burger' in ds){$('#app').classList.add('open');return}
+ if(ds.view){view=ds.view;LS.set('tta_view',view);render();scrollTo(0,0);return}
+ if(ds.f){const[k,v]=ds.f.split(':');F[k]=v;render();return}
+ if('reset' in ds){confirmBox('Reset all demo data to the starting sample?','Reset',()=>{MEM=seed();saveMem();loadAll();toast('Demo data reset')});return}
+ if('logout' in ds){TOKEN='';LS.set('tta_token','');renderLogin();return}
+ if(ds.new){const c=ds.new;openForm(c,null,null,d=>store.create(c,c=='applications'?Object.assign(d,{stage:0,status:'active',stageTs:Date.now()}):d).then(()=>act(()=>{},'Saved',c)));return}
+ if(ds.edit){const[c,id]=ds.edit.split(':');openForm(c,find(c,id),null,d=>store.update(c,id,d).then(()=>act(()=>{},'Changes saved',c)));return}
+ if(ds.toggle){const[c,id]=ds.toggle.split(':'),x=find(c,id),s=x.status=='hidden'?'published':'hidden';act(()=>store.update(c,id,{status:s}),s=='hidden'?'Hidden from the site':'Now live on the site',c);return}
+ if(ds.del){const[c,id]=ds.del.split(':');confirmBox('Delete this record? This cannot be undone.','Delete',()=>act(()=>store.remove(c,id),'Deleted',c));return}
+ if(ds.rs){const[id,s]=ds.rs.split(':');act(()=>store.update('reviews',id,{status:s}),s=='approved'?'Review approved and live':'Review rejected','reviews');return}
+ if(ds.qs){const[id,s]=ds.qs.split(':');act(()=>store.update('questions',id,{status:s}),s=='hidden'?'Question hidden':'Question visible','questions');return}
+ if(ds.ans){const id=ds.ans,a=$('#a_'+id).value.trim();if(!a){toast('Write an answer first');return}act(()=>store.update('questions',id,{a,status:'answered'}),'Answer published','questions');return}
+ if(ds.adv||ds.back){const id=ds.adv||ds.back,a=find('applications',id),s=a.stage+(ds.adv?1:-1);act(()=>store.update('applications',id,{stage:s,stageTs:Date.now()}),'Moved to '+STAGES[s],'applications');return}
+ if(ds.rej){const a=find('applications',ds.rej);confirmBox('Reject '+a.company+'?','Reject',()=>act(()=>store.update('applications',a._id,{status:'rejected'}),'Application rejected','applications'));return}
+ if(ds.reopen){act(()=>store.update('applications',ds.reopen,{status:'active',stageTs:Date.now()}),'Application reopened','applications');return}
+ if(ds.pub){const a=find('applications',ds.pub);openForm('publish',{k:a.company[0].toUpperCase(),since:stamp()},'Publish '+a.company+' as a verified company',d=>store.publish(a._id,d).then(()=>act(()=>{},a.company+' is now live','applications','companies')));return}
+});
+document.addEventListener('input',e=>{const f=e.target.dataset.filter;if(f){F[f]=e.target.value;const pos=e.target.selectionStart;render();const i=$(`[data-filter="${f}"]`);i.focus();i.setSelectionRange(pos,pos)}});
+document.addEventListener('change',e=>{const l=e.target.dataset.ls;if(l){const[c,id]=l.split(':');act(()=>store.update(c,id,{status:e.target.value}),'Status updated',c)}});
+document.addEventListener('keydown',e=>{if(e.key=='Escape'){closeM();$('#app')&&$('#app').classList.remove('open')}});
+$('#modal').addEventListener('click',e=>{if(e.target.id=='modal')closeM()});
+
+/* ---------- auth (API mode only) ---------- */
+function renderLogin(err){
+ $('#root').innerHTML=`<div class="login"><form id="lf"><div class="brand" style="color:var(--ink);padding:0">🛡️<div>TRUSTIFY TRIPS<small>Admin</small></div></div><h1>Sign in</h1>
+ <label class="sub">Email<input class="in" id="le" type="email" autocomplete="username" required></label><label class="sub">Password<input class="in" id="lp" type="password" autocomplete="current-password" required></label>
+ <div style="color:var(--red);font-size:12px" id="lerr">${esc(err||'')}</div><button class="btn p" style="justify-content:center">Sign in</button></form></div>`;
+ $('#le').focus();
+ $('#lf').onsubmit=async ev=>{ev.preventDefault();try{const r=await Rest.req('POST','/auth/login',{email:$('#le').value,password:$('#lp').value});TOKEN=r.token;ME=r.admin;LS.set('tta_token',TOKEN);loadAll()}catch(e){$('#lerr').textContent=e.message}};
+}
+(async()=>{
+ if(!API){loadAll();return}
+ if(!TOKEN){renderLogin();return}
+ try{const r=await Rest.req('GET','/auth/me');ME=r.admin;loadAll()}catch(e){}
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trustify Trips – API Documentation</title>
+<style>
+:root{--navy:#0a1424;--green:#1b6b3a;--green2:#2e9e4f;--gold:#f0a91c;--bg:#f7f8f7;--card:#fff;--ink:#14202b;--mute:#5d6b76;--line:#e4e8e6;--code:#0f1b2b;--codeink:#d8e2ec}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b;--code:#0a0f16}}
+:root[data-theme="dark"]{--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b;--code:#0a0f16}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Segoe UI',system-ui,Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.55;font-size:14px}
+a{color:var(--green);text-decoration:none}a:hover{text-decoration:underline}
+code,pre,.mono{font-family:'SF Mono',Menlo,Consolas,'Courier New',monospace}
+
+/* ---------- top bar ---------- */
+header{background:var(--navy);color:#fff;position:sticky;top:0;z-index:30;border-bottom:1px solid rgba(255,255,255,.08)}
+header .bar{display:flex;align-items:center;gap:18px;height:58px;padding:0 20px;max-width:1500px;margin:0 auto}
+.logo{font-weight:700;letter-spacing:.5px;line-height:1.1;font-size:14px;flex:none}
+.logo small{display:block;color:var(--gold);font-size:9px;letter-spacing:2px}
+header .base{font-size:12px;color:#9fb0c2;margin-left:auto;display:flex;align-items:center;gap:8px}
+header .base b{color:#fff;font-weight:500}
+.hbtn{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:6px;padding:6px 12px;font:inherit;font-size:12px;cursor:pointer}
+.hbtn:hover{background:rgba(255,255,255,.18)}
+#menu{display:none}
+
+/* ---------- layout ---------- */
+.shell{display:grid;grid-template-columns:260px minmax(0,1fr);max-width:1500px;margin:0 auto;align-items:start}
+aside{position:sticky;top:58px;height:calc(100vh - 58px);overflow-y:auto;border-right:1px solid var(--line);padding:18px 10px 60px;background:var(--card)}
+aside .grp{font-size:10px;letter-spacing:1.4px;text-transform:uppercase;color:var(--mute);margin:16px 10px 6px;font-weight:700}
+aside a{display:flex;gap:8px;align-items:center;padding:5px 10px;border-radius:6px;color:var(--ink);font-size:12.5px}
+aside a:hover{background:rgba(27,107,58,.09);text-decoration:none}
+aside a.on{background:rgba(27,107,58,.14);color:var(--green);font-weight:600}
+aside a .m{font-size:9px;font-weight:700;width:46px;flex:none;text-align:center;border-radius:3px;padding:2px 0;color:#fff}
+main{padding:28px 32px 120px;min-width:0}
+
+/* ---------- method pills ---------- */
+.m.GET{background:#1b6b3a}.m.POST{background:#2563a8}.m.PATCH{background:#b5780c}.m.DELETE{background:#a32020}
+
+/* ---------- intro ---------- */
+h1{font-size:28px;line-height:1.2;margin-bottom:8px}
+.lede{color:var(--mute);max-width:720px;margin-bottom:22px}
+h2{font-size:19px;margin:38px 0 12px;padding-top:12px;border-top:1px solid var(--line)}
+h2:first-of-type{border-top:0}
+h3{font-size:14px;margin:18px 0 8px}
+p{margin-bottom:10px;max-width:900px}
+ul{margin:0 0 12px 18px}li{margin-bottom:4px}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(215px,1fr));gap:12px;margin-bottom:8px}
+.kv{background:var(--card);border:1px solid var(--line);border-radius:9px;padding:13px 15px}
+.kv b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--mute);font-weight:700;margin-bottom:5px}
+.kv span{font-size:13px}
+
+.note{border-left:3px solid var(--gold);background:rgba(240,169,28,.09);padding:11px 14px;border-radius:0 7px 7px 0;margin:12px 0;max-width:900px;font-size:13px}
+.note.g{border-color:var(--green2);background:rgba(46,158,79,.09)}
+
+/* ---------- endpoint ---------- */
+.ep{background:var(--card);border:1px solid var(--line);border-radius:11px;margin-bottom:16px;overflow:hidden;scroll-margin-top:72px}
+.ep>summary{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;list-style:none;flex-wrap:wrap}
+.ep>summary::-webkit-details-marker{display:none}
+.ep>summary:hover{background:rgba(125,140,155,.07)}
+.ep .m{font-size:10px;font-weight:700;width:58px;flex:none;text-align:center;border-radius:4px;padding:3px 0;color:#fff;letter-spacing:.5px}
+.ep .u{font-size:13.5px;font-weight:600;word-break:break-all}
+.ep .u em{font-style:normal;color:var(--gold)}
+.ep .t{color:var(--mute);font-size:12.5px;margin-left:auto;text-align:right}
+.lock{font-size:10px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;color:var(--mute);flex:none}
+.lock.auth{border-color:var(--gold);color:#9a6a00;background:rgba(240,169,28,.14)}
+@media (prefers-color-scheme:dark){.lock.auth{color:var(--gold)}}
+.body{padding:2px 16px 18px;border-top:1px solid var(--line)}
+.body>h4{font-size:11px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);margin:18px 0 7px}
+
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--mute);border-bottom:1px solid var(--line);padding:6px 10px 6px 0;font-weight:700}
+td{border-bottom:1px solid var(--line);padding:7px 10px 7px 0;vertical-align:top}
+td:first-child{white-space:nowrap;font-family:'SF Mono',Menlo,Consolas,monospace;font-size:12px;font-weight:600}
+td.ty{color:var(--green);white-space:nowrap;font-size:11.5px}
+.req{color:#c0392b;font-size:10px;font-weight:700;letter-spacing:.5px}
+.opt{color:var(--mute);font-size:10px;letter-spacing:.5px}
+
+pre{background:var(--code);color:var(--codeink);border-radius:8px;padding:13px 15px;overflow-x:auto;font-size:12.3px;line-height:1.5;position:relative}
+pre b{color:var(--gold);font-weight:400}
+pre i{color:#7f99b4;font-style:normal}
+pre u{text-decoration:none;color:#79c08f}
+.copy{position:absolute;top:7px;right:7px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#cfdae5;border-radius:5px;font:inherit;font-size:10.5px;padding:3px 9px;cursor:pointer;font-family:inherit}
+.copy:hover{background:rgba(255,255,255,.2)}
+.wrapc{position:relative;margin-bottom:4px}
+.codes{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:9px}
+.sc{font-size:11px;border-radius:5px;padding:3px 9px;font-weight:600;font-family:'SF Mono',Menlo,monospace}
+.sc.ok{background:rgba(46,158,79,.16);color:var(--green2)}
+.sc.err{background:rgba(195,60,50,.14);color:#c0392b}
+
+/* ---------- try it ---------- */
+.try{margin-top:16px;border:1px dashed var(--line);border-radius:9px;padding:12px 14px}
+.try .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.try button{background:var(--green);color:#fff;border:0;border-radius:6px;padding:7px 16px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.try button:hover{background:#14532c}
+.try input,.try textarea{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:6px;padding:7px 10px;font:inherit;font-size:12px;font-family:'SF Mono',Menlo,monospace}
+.try input{flex:1;min-width:150px}
+.try textarea{width:100%;min-height:92px;margin:8px 0;resize:vertical;display:block}
+.try .lbl{font-size:10px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute);font-weight:700;margin-bottom:6px}
+.out{margin-top:9px;display:none}
+.out.on{display:block}
+
+footer{border-top:1px solid var(--line);margin-top:40px;padding-top:18px;color:var(--mute);font-size:12px}
+
+@media(max-width:900px){
+  .shell{grid-template-columns:1fr}
+  aside{position:fixed;left:0;top:58px;width:265px;z-index:25;transform:translateX(-100%);transition:transform .2s;box-shadow:0 10px 40px rgba(0,0,0,.2)}
+  aside.open{transform:none}
+  main{padding:22px 16px 90px}
+  #menu{display:block}
+  header .base .hide{display:none}
+  .ep .t{display:none}
+}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <button class="hbtn" id="menu" aria-label="Toggle navigation">☰</button>
+    <div class="logo">TRUSTIFY TRIPS<small>API DOCS</small></div>
+    <div class="base">
+      <span class="hide">Base URL</span> <b class="mono" id="baseUrl">—</b>
+      <button class="hbtn" id="theme" aria-label="Toggle theme">◐</button>
+    </div>
+  </div>
+</header>
+
+<div class="shell">
+  <aside id="side"></aside>
+  <main>
+    <h1>Trustify Trips REST API</h1>
+    <p class="lede">Everything a client needs to integrate: every route, its method, auth requirement, request payload, query parameters, response shape and error codes. All endpoints live under <code>/api</code>, speak JSON, and return the same envelope — documented here against the running server you loaded this page from.</p>
+
+    <div class="cards">
+      <div class="kv"><b>Base URL</b><span class="mono" id="baseUrl2">—</span></div>
+      <div class="kv"><b>Content type</b><span class="mono">application/json</span></div>
+      <div class="kv"><b>Auth</b><span>Bearer JWT (admin routes only)</span></div>
+      <div class="kv"><b>Max request body</b><span>100 KB</span></div>
+    </div>
+
+    <h2 id="start">Getting started</h2>
+    <p>The API is split into three groups:</p>
+    <ul>
+      <li><b>Public</b> — read published content and submit forms. No credentials needed. Used by the customer portal.</li>
+      <li><b>Auth</b> — exchange admin email + password for a JWT.</li>
+      <li><b>Admin</b> — full CRUD over every collection. Requires the JWT from the auth group.</li>
+    </ul>
+    <p>Dates and timestamps on records use <code>ts</code> — a Unix epoch in <b>milliseconds</b> (a JS <code>Number</code>), not an ISO string. Mongoose also stamps <code>createdAt</code> / <code>updatedAt</code> on every document; public read endpoints strip those two fields, admin endpoints return them.</p>
+
+    <h2 id="envelope">Response format</h2>
+    <p>Every endpoint — success or failure, public or admin — returns the same envelope. Read the payload from <code>data</code>, and show the user <code>message</code> when something fails. Never branch on the body shape; branch on <code>success</code> or the HTTP status.</p>
+
+    <h3>On success</h3>
+    <div class="wrapc"><pre>{
+  <b>"success"</b>: true,
+  <b>"statusCode"</b>: 200,
+  <b>"message"</b>: "Companies fetched successfully",
+  <b>"data"</b>: <i>…the payload: an object, an array, or null…</i>
+}</pre></div>
+
+    <h3>On failure</h3>
+    <div class="wrapc"><pre>{
+  <b>"success"</b>: false,
+  <b>"statusCode"</b>: 400,
+  <b>"message"</b>: "Name and email are required.",
+  <b>"errors"</b>: [ <i>…optional per-field details…</i> ]
+}</pre></div>
+    <p><code>message</code> is always safe to show an end user. <code>errors</code> carries <code>{ field, message }</code> entries when a specific field caused the failure (validation, duplicate key, bad id) — use it to highlight the offending input. It is an empty array otherwise, never missing.</p>
+
+    <div class="note">A minimal client: <code class="mono">const { data, message } = await res.json(); if (!res.ok) throw new Error(message);</code></div>
+
+    <h3>Authentication</h3>
+    <p>Sign in once, then send the token on every admin request:</p>
+    <div class="wrapc"><pre>Authorization: Bearer &lt;token&gt;</pre></div>
+    <p>Tokens are signed with <code>JWT_SECRET</code> and expire after <code>JWT_EXPIRES_IN</code> (default <code>7d</code>). An expired, malformed or missing token returns <code>401</code> — <code>"Sign in to continue."</code> when the header is absent, <code>"Your session expired. Sign in again."</code> when the token itself is rejected.</p>
+
+    <h3>CORS</h3>
+    <p>Cross-origin requests to <code>/api</code> are rejected unless the calling origin is listed in the server's <code>CORS_ORIGINS</code> environment variable (comma-separated). If your frontend is served from the same host as this API, no configuration is needed.</p>
+
+    <h3>Rate limits</h3>
+    <ul>
+      <li><code>POST /api/auth/login</code> — 10 attempts per IP per 15 minutes.</li>
+      <li>All public form submissions (<code>enquiries</code>, <code>callbacks</code>, <code>applications</code>, <code>questions</code>, <code>reviews</code>, <code>members</code>) — 20 per IP per 10 minutes, counted across all six routes.</li>
+      <li>Admin routes are not rate limited.</li>
+    </ul>
+    <p>Limits are reported in the standard <code>RateLimit-*</code> response headers. Exceeding one returns <code>429</code> in the usual failure envelope.</p>
+
+    <h3>Status codes</h3>
+    <table>
+      <tr><th>Status</th><th>When</th></tr>
+      <tr><td>200</td><td>Read, update or delete succeeded.</td></tr>
+      <tr><td>201</td><td>Something new was stored.</td></tr>
+      <tr><td>400</td><td>Validation failed, bad ObjectId, malformed JSON, or a body over 100 KB.</td></tr>
+      <tr><td>401</td><td>Missing, invalid or expired admin token; wrong login credentials.</td></tr>
+      <tr><td>404</td><td>Unknown route or record not found.</td></tr>
+      <tr><td>409</td><td>Unique field already in use (company <code>k</code>, destination <code>slug</code>, member/admin <code>email</code>), or application already published.</td></tr>
+      <tr><td>429</td><td>Rate limit exceeded.</td></tr>
+      <tr><td>500</td><td>Unexpected server error. The message is always generic; details are logged server-side.</td></tr>
+    </table>
+
+    <div class="note">Use the <b>Try it</b> panel inside any endpoint below to fire a live request against this server. Paste a token once in the <b>Admin token</b> box and it is reused for every admin call and remembered in this browser.</div>
+
+    <div class="try" style="margin:16px 0 0">
+      <div class="lbl">Admin token (used by every “Try it” panel)</div>
+      <div class="row">
+        <input id="tok" placeholder="paste JWT from POST /api/auth/login" autocomplete="off">
+        <button id="tokClear" style="background:var(--mute)">Clear</button>
+      </div>
+    </div>
+
+    <div id="docs"></div>
+
+    <h2 id="models">Data models</h2>
+    <p>Field reference for every collection. <span class="req">REQUIRED</span> marks fields Mongoose rejects when absent on create. Admin <code>POST</code>/<code>PATCH</code> silently drops any field not listed as editable for that collection.</p>
+    <div id="schemas"></div>
+
+    <footer>
+      Trustify Trips API · generated reference served by this backend at <code class="mono" id="docPath">/docs</code> ·
+      source of truth: <code>src/routes/index.js</code> and <code>src/modules/&lt;section&gt;/</code>
+    </footer>
+  </main>
+</div>
+
+<script>
+/* ======================================================================
+   Endpoint reference. Mirrors src/modules/<section>/*.route.js + .controller.js
+   — update together.
+
+   `res` entries carry only the DATA payload; the renderer wraps every one in
+   the standard envelope, so the samples cannot drift from the real shape.
+   ====================================================================== */
+const R = (n,t,d)=>({n,t,r:true,d});   // required field
+const O = (n,t,d)=>({n,t,r:false,d});  // optional field
+
+const RESOURCES = ['companies','destinations','reviews','questions','enquiries','callbacks','applications','members'];
+
+const GROUPS = [
+{
+  id:'public', title:'Public endpoints', note:'No authentication. These power the customer portal and are safe to call from a browser.',
+  eps:[
+  {
+    m:'GET', p:'/api/health', sum:'Service heartbeat',
+    desc:'Liveness probe. Returns immediately and does not touch the database.',
+    res:[{c:200,msg:'API is healthy',s:`{ <b>"ok"</b>: true, <b>"time"</b>: "2026-10-08T09:21:44.512Z" }`}]
+  },
+  {
+    m:'GET', p:'/api/companies', sum:'List verified companies',
+    desc:'Every company with <code>status: "published"</code>, sorted by trust <code>score</code> descending. Hidden companies are never returned here. No pagination — the full published list comes back in one response.',
+    res:[{c:200,msg:'Companies fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5a6",
+    <b>"k"</b>: "H",
+    <b>"name"</b>: "Holiday Heaven",
+    <b>"score"</b>: 96,
+    <b>"rating"</b>: 4.8,
+    <b>"dests"</b>: 24,
+    <b>"since"</b>: "Jan 2023",
+    <b>"city"</b>: "Dehradun, Uttarakhand",
+    <b>"exp"</b>: 8,
+    <b>"price"</b>: 10499,
+    <b>"reviews"</b>: 2340,
+    <b>"tags"</b>: ["Custom Itineraries", "24x7 Support"],
+    <b>"status"</b>: "published",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'GET', p:'/api/destinations', sum:'List destinations',
+    desc:'Published destinations sorted by <code>n</code> (number of verified companies) descending. Each item carries an extra <code>id</code> field that mirrors <code>slug</code> — link by <code>id</code> when building destination pages.',
+    res:[{c:200,msg:'Destinations fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5b1",
+    <b>"slug"</b>: "kedarnath",
+    <b>"id"</b>: "kedarnath",          <i>// mirror of slug</i>
+    <b>"name"</b>: "Kedarnath",
+    <b>"region"</b>: "India",
+    <b>"n"</b>: 32,
+    <b>"rating"</b>: 4.7,
+    <b>"desc"</b>: "Verified travel companies for Kedarnath.",
+    <b>"best"</b>: "May - Oct",
+    <b>"diff"</b>: "Moderate",
+    <b>"dur"</b>: "3N/4D",
+    <b>"budget"</b>: "₹10,000 - ₹15,000",
+    <b>"c1"</b>: "#8a6a52",
+    <b>"c2"</b>: "#2b4463",
+    <b>"status"</b>: "published",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'GET', p:'/api/reviews', sum:'List approved reviews',
+    desc:'Only reviews with <code>status: "approved"</code>. Newest first, capped at 500 items.',
+    q:[O('c','string','Company short code, e.g. <code>H</code>. Automatically upper-cased. Omit to get reviews for all companies.')],
+    ex:'/api/reviews?c=H',
+    res:[{c:200,msg:'Reviews fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5c7",
+    <b>"c"</b>: "H",                     <i>// company short code</i>
+    <b>"n"</b>: "Aarav S.",              <i>// reviewer name</i>
+    <b>"r"</b>: 5,                       <i>// rating 1-5</i>
+    <b>"trip"</b>: "3N/4D Kedarnath",
+    <b>"t"</b>: "Well planned trip...",  <i>// review text</i>
+    <b>"d"</b>: "Sep 2024",              <i>// display date</i>
+    <b>"status"</b>: "approved",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'GET', p:'/api/questions', sum:'List questions and answers',
+    desc:'Questions whose status is <b>not</b> <code>hidden</code> — i.e. both <code>open</code> (unanswered) and <code>answered</code>. Newest first, capped at 500. The answer lives in <code>a</code> and is an empty string while the question is open.',
+    q:[O('c','string','Company short code. Automatically upper-cased. Omit for all companies.')],
+    ex:'/api/questions?c=H',
+    res:[{c:200,msg:'Questions fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5d3",
+    <b>"c"</b>: "H",
+    <b>"n"</b>: "Priya K.",
+    <b>"q"</b>: "Do you arrange pickup from Haridwar station?",
+    <b>"a"</b>: "Yes, pickup is included in all Kedarnath packages.",
+    <b>"status"</b>: "answered",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'POST', p:'/api/enquiries', sum:'Submit a trip enquiry', lim:true,
+    desc:'Creates a lead from the enquiry form. Starts at <code>status: "new"</code>; the client cannot set status or notes.',
+    body:[R('name','string','Max 80 characters.'),R('phone','string','Max 20 characters.'),
+          O('date','string','Preferred travel date, free text or <code>YYYY-MM-DD</code>.'),
+          O('pax','number','Number of travellers, 0–500.'),
+          O('msg','string','Message, max 2000 characters.'),
+          O('company','string','Company name the traveller enquired about.'),
+          O('ck','string','Company short code.'),
+          O('pkg','string','Package name the enquiry came from.')],
+    sample:{name:'Aarav Sharma',phone:'9876543210',date:'2026-05-14',pax:4,msg:'Looking for a 3N/4D Kedarnath package for a family of four.',company:'Holiday Heaven',ck:'H',pkg:'3N/4D Kedarnath'},
+    res:[{c:201,msg:'Enquiry submitted successfully',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5e9", <b>"status"</b>: "new" }`},
+         {c:400,msg:'Path `name` is required.',errors:`[ { <b>"field"</b>: "name", <b>"message"</b>: "Path \`name\` is required." } ]`}]
+  },
+  {
+    m:'POST', p:'/api/callbacks', sum:'Request a callback', lim:true,
+    desc:'Creates a callback request. Starts at <code>status: "new"</code>.',
+    body:[R('name','string','Max 80 characters.'),R('phone','string','Max 20 characters.'),
+          O('slot','enum','One of <code>Morning</code>, <code>Afternoon</code>, <code>Evening</code> or <code>""</code>. Any other value is rejected with 400.')],
+    sample:{name:'Neha Patel',phone:'9876500011',slot:'Evening'},
+    res:[{c:201,msg:'Callback requested successfully',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5f2", <b>"status"</b>: "new" }`},
+         {c:400,msg:'`Night` is not a valid enum value for path `slot`.',errors:`[ { <b>"field"</b>: "slot", <b>"message"</b>: "\`Night\` is not a valid enum value for path \`slot\`." } ]`}]
+  },
+  {
+    m:'POST', p:'/api/applications', sum:'Apply to get verified', lim:true,
+    desc:'A travel company applies to join the platform. The record starts at <code>stage: 0</code> and <code>status: "active"</code>, then moves through verification stages 0–7 in the admin portal before it can be published as a company.',
+    body:[R('company','string','Legal / trading name, max 120 characters.'),
+          R('contact','string','Contact person, max 80 characters.'),
+          R('email','string','Must match a basic email pattern. Stored lower-cased.'),
+          R('phone','string','Max 20 characters.'),
+          O('city','string','Operating city.'),
+          O('years','number','Years in business, 0 or more.')],
+    sample:{company:'Dream Trails',contact:'Rohit Mehta',email:'rohit@dreamtrails.in',phone:'9810011223',city:'Dehradun',years:5},
+    res:[{c:201,msg:'Application submitted successfully',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f601", <b>"status"</b>: "active" }`},
+         {c:400,msg:'Enter a valid email.',errors:`[ { <b>"field"</b>: "email", <b>"message"</b>: "Enter a valid email." } ]`}]
+  },
+  {
+    m:'POST', p:'/api/questions', sum:'Ask a company a question', lim:true,
+    desc:'Posts a public question. Starts at <code>status: "open"</code> with an empty answer and is immediately visible on <code>GET /api/questions</code>. Admins answer it later via <code>PATCH /api/admin/questions/:id</code>.',
+    body:[R('c','string','Company short code. Stored upper-cased.'),
+          R('n','string','Asker name, max 80 characters.'),
+          R('q','string','The question, max 1000 characters.')],
+    sample:{c:'H',n:'Priya K.',q:'Do you arrange pickup from Haridwar station?'},
+    res:[{c:201,msg:'Question posted successfully',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f60a", <b>"status"</b>: "open" }`}]
+  },
+  {
+    m:'POST', p:'/api/reviews', sum:'Submit a review', lim:true,
+    desc:'The company code <code>c</code> is validated against existing companies before the review is stored. Reviews land in <code>status: "pending"</code> and stay invisible until an admin approves them — unless the server runs with <code>REVIEW_AUTO_APPROVE=true</code>, in which case they are created as <code>approved</code> and the message reads "Review published successfully". Check the returned <code>status</code> to decide what to tell the user.',
+    body:[R('c','string','Company short code — must match an existing company. Stored upper-cased.'),
+          R('n','string','Reviewer name, max 80 characters.'),
+          R('r','number','Rating, 1–5.'),
+          R('t','string','Review text, max 2000 characters.'),
+          O('trip','string','Package / trip name, max 120 characters.'),
+          O('d','string','Display date, e.g. <code>"Sep 2024"</code>.')],
+    sample:{c:'H',n:'Aarav S.',r:5,trip:'3N/4D Kedarnath',t:'Well planned trip. Hotels matched the itinerary exactly.',d:'Sep 2024'},
+    res:[{c:201,msg:'Review submitted for moderation',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f613", <b>"status"</b>: "pending" }`},
+         {c:400,msg:'Pick a company to review.',note:'unknown company code'}]
+  },
+  {
+    m:'POST', p:'/api/members', sum:'Traveller sign-in / sign-up', lim:true,
+    desc:'Idempotent upsert keyed on email. A new member is created, or an existing member\'s name is updated. Always responds <code>201</code>, both for new and returning members. This is a lightweight identity capture — it issues no token and grants no access.',
+    body:[R('name','string','Max 80 characters.'),R('email','string','Unique. Stored lower-cased and trimmed.')],
+    sample:{name:'Aarav Sharma',email:'aarav@example.com'},
+    res:[{c:201,msg:'Signed in successfully',s:`{
+  <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f61c",
+  <b>"name"</b>: "Aarav Sharma",
+  <b>"email"</b>: "aarav@example.com"
+}`},
+         {c:400,msg:'Name and email are required.'}]
+  }]
+},
+{
+  id:'auth', title:'Authentication', note:'Admin accounts only. There is no traveller login — <code>POST /api/members</code> is identity capture, not authentication.',
+  eps:[
+  {
+    m:'POST', p:'/api/auth/login', sum:'Sign in and get a token', lim:true,
+    desc:'Exchanges credentials for a JWT. Rate limited to 10 attempts per IP per 15 minutes. The same generic message is returned for an unknown email and a wrong password, so the endpoint cannot be used to enumerate accounts.',
+    body:[R('email','string','Case-insensitive.'),R('password','string','Plain text over HTTPS; compared against a bcrypt hash.')],
+    sample:{email:'admin@trustifytrips.in',password:'ChangeMe@123'},
+    res:[{c:200,msg:'Signed in successfully',s:`{
+  <b>"token"</b>: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  <b>"admin"</b>: {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f625",
+    <b>"name"</b>: "Site Admin",
+    <b>"email"</b>: "admin@trustifytrips.in",
+    <b>"role"</b>: "admin"
+  }
+}`},
+      {c:400,msg:'Enter your email and password.'},
+      {c:401,msg:'Email or password is incorrect.'},
+      {c:429,msg:'Too many sign-in attempts. Try again in 15 minutes.'}]
+  },
+  {
+    m:'GET', p:'/api/auth/me', sum:'Current admin', auth:true,
+    desc:'Returns the account behind the supplied token. Use it on app start to check whether a stored token is still valid.',
+    res:[{c:200,msg:'Admin fetched successfully',s:`{
+  <b>"admin"</b>: {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f625",
+    <b>"name"</b>: "Site Admin",
+    <b>"email"</b>: "admin@trustifytrips.in",
+    <b>"role"</b>: "admin"
+  }
+}`},
+      {c:401,msg:'Sign in to continue.',note:'no Authorization header'}]
+  }]
+},
+{
+  id:'admin', title:'Admin endpoints', note:'Every route below requires <code>Authorization: Bearer &lt;token&gt;</code>. A missing or expired token returns 401 before any work is done. The eight collections each have their own routes; they behave identically, so they are documented once with <em>:resource</em> standing for the collection name.',
+  eps:[
+  {
+    m:'GET', p:'/api/admin/stats', sum:'Dashboard counters', auth:true,
+    desc:'Aggregate counts for the admin dashboard. <code>newLeads</code> is enquiries plus callbacks that are still <code>new</code>. <code>pipeline</code> buckets active applications by verification stage — stages with no applications are simply absent from the array.',
+    res:[{c:200,msg:'Stats fetched successfully',s:`{
+  <b>"pendingReviews"</b>: 7,      <i>// reviews awaiting moderation</i>
+  <b>"openQuestions"</b>: 3,       <i>// questions with no answer yet</i>
+  <b>"newLeads"</b>: 12,           <i>// new enquiries + new callbacks</i>
+  <b>"pipeline"</b>: [             <i>// active applications by stage</i>
+    { <b>"_id"</b>: 0, <b>"n"</b>: 4 },
+    { <b>"_id"</b>: 3, <b>"n"</b>: 2 },
+    { <b>"_id"</b>: 7, <b>"n"</b>: 1 }
+  ],
+  <b>"liveCompanies"</b>: 4,       <i>// published companies</i>
+  <b>"members"</b>: 310
+}`}]
+  },
+  {
+    m:'GET', p:'/api/admin/:resource', sum:'List records (paginated)', auth:true, resource:true,
+    desc:'Paginated listing for any collection, newest first. The <code>message</code> names the collection, e.g. "Companies fetched successfully".',
+    q:[O('status','string','Exact match on the record\'s <code>status</code> field, e.g. <code>pending</code>, <code>new</code>, <code>active</code>.'),
+       O('q','string','Case-insensitive search. Matches against whichever of <code>name</code>, <code>company</code>, <code>n</code>, <code>email</code>, <code>phone</code>, <code>city</code> exist on that collection. Regex characters are escaped, so user input is safe to pass through.'),
+       O('page','number','1-based page number. Default <code>1</code>.'),
+       O('limit','number','Records per page. Default <code>50</code>, maximum <code>1000</code>.')],
+    ex:'/api/admin/reviews?status=pending&q=aarav&page=1&limit=25',
+    res:[{c:200,msg:'Reviews fetched successfully',s:`{
+  <b>"items"</b>: [ <i>…full records, including createdAt / updatedAt…</i> ],
+  <b>"total"</b>: 128,   <i>// records matching the filter, not just this page</i>
+  <b>"page"</b>: 1,
+  <b>"limit"</b>: 25,
+  <b>"pages"</b>: 6      <i>// total pages for this filter</i>
+}`},
+      {c:404,msg:'No route for GET /api/admin/orders',note:'collection does not exist'}]
+  },
+  {
+    m:'GET', p:'/api/admin/:resource/:id', sum:'Fetch one record', auth:true, resource:true,
+    desc:'Returns the complete document, including <code>createdAt</code> and <code>updatedAt</code>.',
+    ex:'/api/admin/companies/66f0a1c2e4b0a1d2c3e4f5a6',
+    res:[{c:200,msg:'Company fetched successfully',s:`{ <i>…full record…</i> }`},
+      {c:400,msg:'Invalid _id: abc',errors:`[ { <b>"field"</b>: "_id", <b>"message"</b>: "Invalid value." } ]`},
+      {c:404,msg:'Company not found.'}]
+  },
+  {
+    m:'POST', p:'/api/admin/:resource', sum:'Create a record', auth:true, resource:true,
+    desc:'Creates a document. Only the editable fields listed for that collection are accepted — anything else in the body is dropped silently, so <code>_id</code>, <code>ts</code> and <code>createdAt</code> cannot be forced. Unlike the public form endpoints, admins <b>may</b> set <code>status</code> directly.',
+    sample:{k:'D',name:'Dream Trails',score:92,rating:4.6,dests:26,since:'Apr 2023',city:'Dehradun, Uttarakhand',exp:5,price:11499,reviews:980,tags:['Scenic Routes','Local Guides'],status:'published'},
+    sampleNote:'Body shown for <code>companies</code>. See <a href="#models">Data models</a> for the editable fields of each collection.',
+    res:[{c:201,msg:'Company created successfully',s:`{ <i>…the created record…</i> }`},
+      {c:400,msg:'Path `name` is required.',errors:`[ { <b>"field"</b>: "name", <b>"message"</b>: "Path \`name\` is required." } ]`},
+      {c:409,msg:'That k is already in use.',errors:`[ { <b>"field"</b>: "k", <b>"message"</b>: "Already in use." } ]`}]
+  },
+  {
+    m:'PATCH', p:'/api/admin/:resource/:id', sum:'Update a record', auth:true, resource:true,
+    desc:'Partial update — send only the fields you are changing. Validators run on the update, and the full updated document is returned. Non-editable keys in the body are ignored.',
+    sample:{status:'approved'},
+    sampleNote:'Approving a pending review. For questions, send <code>{ "a": "…", "status": "answered" }</code>; for applications, advance <code>stage</code> and set <code>stageTs</code>.',
+    ex:'/api/admin/reviews/66f0a1c2e4b0a1d2c3e4f5c7',
+    res:[{c:200,msg:'Review updated successfully',s:`{ <i>…the updated record…</i> }`},
+      {c:400,msg:'`maybe` is not a valid enum value for path `status`.'},
+      {c:404,msg:'Review not found.'}]
+  },
+  {
+    m:'DELETE', p:'/api/admin/:resource/:id', sum:'Delete a record', auth:true, resource:true,
+    desc:'Permanently removes the document. There is no soft delete and no undo — to take content off the site without losing it, PATCH its <code>status</code> to <code>hidden</code> / <code>rejected</code> instead.',
+    ex:'/api/admin/questions/66f0a1c2e4b0a1d2c3e4f5d3',
+    res:[{c:200,msg:'Question deleted successfully',s:`{ <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5d3" }`},
+      {c:404,msg:'Question not found.'}]
+  },
+  {
+    m:'POST', p:'/api/admin/applications/:id/publish', sum:'Publish an applicant as a company', auth:true,
+    desc:'Promotes a fully verified application into a live company. Requires <code>stage</code> to be <code>7</code> (all eight verification steps complete). It creates a Company from the application\'s <code>company</code>, <code>city</code> and <code>years</code>, marks the application <code>published</code>, and links the two via <code>companyId</code>. The body supplies the fields the application does not carry.',
+    body:[O('k','string','Company short code, max 3 characters, must be unique. Supply this — without it the Company fails validation.'),
+          O('score','number','Trust score 0–100. Required by the Company model.'),
+          O('rating','number','0–5. Defaults to 0.'),
+          O('price','number','3N/4D price per person in INR. Defaults to 0.'),
+          O('dests','number','Destinations covered. Defaults to 0.'),
+          O('since','string','e.g. <code>"Apr 2023"</code>.'),
+          O('tags','string[]','Highlight tags, each max 40 characters.')],
+    sample:{k:'D',score:92,rating:4.6,price:11499,dests:26,since:'Apr 2023',tags:['Scenic Routes','Local Guides']},
+    ex:'/api/admin/applications/66f0a1c2e4b0a1d2c3e4f601/publish',
+    res:[{c:201,msg:'Company published successfully',s:`{ <i>…the newly created published company…</i> }`},
+      {c:400,msg:'Finish every verification step before publishing.'},
+      {c:404,msg:'Application not found.'},
+      {c:409,msg:'This company is already published.'}]
+  }]
+}];
+
+/* ---------------- data models ---------------- */
+const SCHEMAS = [
+{n:'Company', c:'companies', d:'A verified travel company shown on the customer portal.',
+ f:[['k','string','yes','Short code / logo letter. Unique, upper-cased, max 3 characters.'],
+    ['name','string','yes','Max 120 characters.'],
+    ['score','number','yes','Trust score, 0–100.'],
+    ['rating','number','no','0–5. Default 0.'],
+    ['dests','number','no','Destinations covered. Default 0.'],
+    ['since','string','no','Verified since, e.g. "Jan 2023".'],
+    ['city','string','no','Base city.'],
+    ['exp','number','no','Years in business. Default 0.'],
+    ['price','number','no','3N/4D price per person in INR. Default 0.'],
+    ['reviews','number','no','Verified review count. Default 0.'],
+    ['tags','string[]','no','Highlight tags, each max 40 characters.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
+    ['ts','number','no','Epoch ms. Set on create, used for sorting.']]},
+{n:'Destination', c:'destinations', d:'A destination page on the customer portal.',
+ f:[['slug','string','yes','Unique, lower-cased. Returned as <code>id</code> too on the public endpoint.'],
+    ['name','string','yes','Display name.'],
+    ['region','string','no','Default "India".'],
+    ['n','number','no','Verified companies covering it. Default 0. Sorts the public list.'],
+    ['rating','number','no','0–5. Default 0.'],
+    ['desc','string','no','Short description.'],
+    ['best','string','no','Best season, e.g. "May - Oct".'],
+    ['diff','string','no','Difficulty, e.g. "Moderate".'],
+    ['dur','string','no','Typical duration, e.g. "3N/4D".'],
+    ['budget','string','no','Typical budget range.'],
+    ['c1','string','no','Card gradient start colour. Default <code>#2b4463</code>.'],
+    ['c2','string','no','Card gradient end colour. Default <code>#0a1424</code>.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Review', c:'reviews', d:'A traveller review of a company. Moderated unless REVIEW_AUTO_APPROVE is on.',
+ f:[['c','string','yes','Company short code, upper-cased. Validated against companies on public submit.'],
+    ['n','string','yes','Reviewer name, max 80.'],
+    ['r','number','yes','Rating, 1–5.'],
+    ['t','string','yes','Review text, max 2000.'],
+    ['trip','string','no','Package name, max 120.'],
+    ['d','string','no','Display date, e.g. "Sep 2024".'],
+    ['status','enum','no','<code>pending</code> | <code>approved</code> | <code>rejected</code>. Default <code>pending</code>. Admin-only field.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Question', c:'questions', d:'A public question about a company and its answer.',
+ f:[['c','string','yes','Company short code, upper-cased.'],
+    ['n','string','yes','Asker name, max 80.'],
+    ['q','string','yes','Question, max 1000.'],
+    ['a','string','no','Answer, max 2000. Admin-only field; empty until answered.'],
+    ['status','enum','no','<code>open</code> | <code>answered</code> | <code>hidden</code>. Default <code>open</code>. Admin-only field.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Enquiry', c:'enquiries', d:'A trip enquiry lead.',
+ f:[['name','string','yes','Max 80.'],['phone','string','yes','Max 20.'],
+    ['date','string','no','Preferred travel date.'],['pax','number','no','Travellers, 0–500.'],
+    ['msg','string','no','Message, max 2000.'],['company','string','no','Company name enquired about.'],
+    ['ck','string','no','Company short code.'],['pkg','string','no','Package name.'],
+    ['status','enum','no','<code>new</code> | <code>contacted</code> | <code>booked</code> | <code>closed</code>. Default <code>new</code>. Admin-only field.'],
+    ['notes','string','no','Internal notes. Admin-only field.'],['ts','number','no','Epoch ms.']]},
+{n:'Callback', c:'callbacks', d:'A request to be called back.',
+ f:[['name','string','yes','Max 80.'],['phone','string','yes','Max 20.'],
+    ['slot','enum','no','<code>Morning</code> | <code>Afternoon</code> | <code>Evening</code> | <code>""</code>. Default <code>""</code>.'],
+    ['status','enum','no','<code>new</code> | <code>called</code> | <code>closed</code>. Default <code>new</code>. Admin-only field.'],
+    ['notes','string','no','Internal notes. Admin-only field.'],['ts','number','no','Epoch ms.']]},
+{n:'Application', c:'applications', d:'A company applying for verification. Moves through stages 0–7, then can be published.',
+ f:[['company','string','yes','Max 120.'],['contact','string','yes','Max 80.'],
+    ['email','string','yes','Validated, lower-cased.'],['phone','string','yes','Max 20.'],
+    ['city','string','no','Operating city.'],['years','number','no','Years in business. Default 0.'],
+    ['stage','number','no','Verification stage, 0–7. Default 0. Admin-only field.'],
+    ['stageTs','number','no','Epoch ms the stage last changed. Admin-only field.'],
+    ['status','enum','no','<code>active</code> | <code>rejected</code> | <code>published</code>. Default <code>active</code>. Admin-only field.'],
+    ['companyId','ObjectId','no','Set automatically by the publish endpoint. Read-only.'],
+    ['notes','string','no','Internal notes. Admin-only field.'],['ts','number','no','Epoch ms.']]},
+{n:'Member', c:'members', d:'A traveller who signed in on the customer portal.',
+ f:[['name','string','yes','Max 80.'],['email','string','yes','Unique, validated, lower-cased.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Admin', c:'—', d:'An admin account. Not exposed as an admin CRUD collection — create accounts with `npm run create-admin`.',
+ f:[['name','string','yes',''],['email','string','yes','Unique, lower-cased.'],
+    ['passwordHash','string','yes','bcrypt hash. Never returned by any endpoint.'],
+    ['role','enum','no','<code>admin</code> | <code>editor</code>. Default <code>admin</code>. Carried in the JWT but not currently enforced per-route.']]}
+];
+
+/* ======================================================================
+   Rendering
+   ====================================================================== */
+const esc = (s)=>String(s).replace(/[&<>]/g,(c)=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const slug = (m,p)=>(m+p).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const origin = location.origin;
+document.getElementById('baseUrl').textContent = origin + '/api';
+document.getElementById('baseUrl2').textContent = origin + '/api';
+document.getElementById('docPath').textContent = location.pathname;
+
+const pretty = (o)=>esc(JSON.stringify(o,null,2)).replace(/"([^"]+)":/g,'<b>"$1"</b>:');
+const urlFor = (ep)=>ep.ex || ep.p;
+
+/** Wrap a sample payload in the standard envelope, so the two can never drift. */
+function envelope(r){
+  const head = `{\n  <b>"success"</b>: ${r.c<400?'true':'false'},\n  <b>"statusCode"</b>: ${r.c},\n  <b>"message"</b>: <u>"${esc(r.msg)}"</u>,\n`;
+  if (r.c >= 400) return head + `  <b>"errors"</b>: ${r.errors || '[]'}\n}`;
+  const data = (r.s || 'null').replace(/\n/g, '\n  ');  // indent one level
+  return head + `  <b>"data"</b>: ${data}\n}`;
+}
+
+function curlFor(ep){
+  const u = origin + urlFor(ep);
+  let s = `curl -X ${ep.m} "${u}"`;
+  if (ep.auth) s += ` \\\n  -H "Authorization: Bearer $TOKEN"`;
+  if (ep.sample) s += ` \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(ep.sample)}'`;
+  return esc(s);
+}
+
+function fieldTable(rows, kind){
+  return `<table><tr><th>${kind}</th><th>Type</th><th></th><th>Description</th></tr>` +
+    rows.map(f=>`<tr><td>${f.n}</td><td class="ty">${f.t}</td>
+      <td>${f.r?'<span class="req">REQUIRED</span>':'<span class="opt">optional</span>'}</td>
+      <td>${f.d}</td></tr>`).join('') + `</table>`;
+}
+
+function code(html, id){
+  return `<div class="wrapc"><pre id="${id||''}">${html}</pre><button class="copy" data-copy="${id||''}">Copy</button></div>`;
+}
+
+function renderEp(ep){
+  const id = slug(ep.m, ep.p);
+  const path = esc(ep.p).replace(/:(\w+)/g,'<em>:$1</em>');
+  let h = `<details class="ep" id="${id}">
+    <summary><span class="m ${ep.m}">${ep.m}</span><span class="u mono">${path}</span>
+      ${ep.auth?'<span class="lock auth">🔒 token</span>':'<span class="lock">public</span>'}
+      ${ep.lim?'<span class="lock">rate limited</span>':''}
+      <span class="t">${ep.sum}</span></summary>
+    <div class="body">
+      <h4>What it does</h4><p>${ep.desc}</p>`;
+
+  if (ep.resource){
+    h += `<h4>Path parameters</h4>` + fieldTable([
+      {n:':resource',t:'string',r:true,d:'One of: ' + RESOURCES.map(r=>`<code>${r}</code>`).join(', ') + '.'},
+      ...(ep.p.includes(':id')?[{n:':id',t:'ObjectId',r:true,d:'The record\'s <code>_id</code>.'}]:[])
+    ],'Parameter');
+  } else if (ep.p.includes(':id')){
+    h += `<h4>Path parameters</h4>` + fieldTable([{n:':id',t:'ObjectId',r:true,d:'The record\'s <code>_id</code>.'}],'Parameter');
+  }
+  if (ep.q) h += `<h4>Query parameters</h4>` + fieldTable(ep.q,'Parameter');
+  if (ep.body) h += `<h4>Request body</h4>` + fieldTable(ep.body,'Field');
+  if (ep.sample){
+    h += `<h4>Example request body</h4>` + code(pretty(ep.sample));
+    if (ep.sampleNote) h += `<p style="font-size:12.5px;color:var(--mute);margin-top:6px">${ep.sampleNote}</p>`;
+  }
+
+  h += `<h4>Responses</h4><div class="codes">` +
+    ep.res.map(r=>`<span class="sc ${r.c<400?'ok':'err'}">${r.c}</span>`).join('') + `</div>`;
+  ep.res.forEach(r=>{
+    h += code(`<i>// ${r.c}${r.note?' — '+esc(r.note):''}</i>\n` + envelope(r));
+  });
+
+  h += `<h4>cURL</h4>` + code(curlFor(ep));
+
+  // try-it
+  const tryUrl = urlFor(ep).replace(':resource','companies');
+  h += `<div class="try" data-m="${ep.m}" data-auth="${ep.auth?1:0}">
+      <div class="lbl">Try it — live request against ${esc(origin)}</div>
+      <div class="row"><span class="m ${ep.m}" style="font-size:10px;font-weight:700;width:58px;text-align:center;border-radius:4px;padding:3px 0;color:#fff">${ep.m}</span>
+      <input class="tu" value="${esc(tryUrl)}" spellcheck="false">
+      <button class="send">Send</button></div>
+      ${ep.sample?`<textarea class="tb" spellcheck="false">${esc(JSON.stringify(ep.sample,null,2))}</textarea>`:''}
+      <div class="out"></div>
+    </div>`;
+
+  h += `</div></details>`;
+  return h;
+}
+
+// build docs
+let html = '', nav = '';
+GROUPS.forEach(g=>{
+  html += `<h2 id="${g.id}">${g.title}</h2><p class="lede" style="margin-bottom:14px">${g.note}</p>`;
+  nav += `<div class="grp">${g.title}</div>`;
+  g.eps.forEach(ep=>{
+    html += renderEp(ep);
+    nav += `<a href="#${slug(ep.m,ep.p)}"><span class="m ${ep.m}">${ep.m}</span>${esc(ep.p.replace('/api',''))}</a>`;
+  });
+});
+document.getElementById('docs').innerHTML = html;
+
+// schemas
+document.getElementById('schemas').innerHTML = SCHEMAS.map(s=>`
+  <details class="ep" id="model-${s.n.toLowerCase()}">
+    <summary><span class="u mono">${s.n}</span>
+      <span class="lock">${s.c==='—'?'internal':'/api/admin/'+s.c}</span>
+      <span class="t">${s.d}</span></summary>
+    <div class="body"><p style="margin-top:14px">${s.d}</p>
+    <table><tr><th>Field</th><th>Type</th><th></th><th>Notes</th></tr>` +
+    s.f.map(f=>`<tr><td>${f[0]}</td><td class="ty">${f[1]}</td>
+      <td>${f[2]==='yes'?'<span class="req">REQUIRED</span>':'<span class="opt">optional</span>'}</td>
+      <td>${f[3]}</td></tr>`).join('') +
+    `</table></div></details>`).join('');
+
+nav += `<div class="grp">Reference</div>
+  <a href="#start">Getting started</a><a href="#envelope">Response format</a><a href="#models">Data models</a>`;
+document.getElementById('side').innerHTML = nav;
+
+/* ---------------- interactions ---------------- */
+const tok = document.getElementById('tok');
+tok.value = localStorage.getItem('trustify_doc_token') || '';
+tok.addEventListener('input', ()=>localStorage.setItem('trustify_doc_token', tok.value.trim()));
+document.getElementById('tokClear').onclick = ()=>{ tok.value=''; localStorage.removeItem('trustify_doc_token'); };
+
+document.addEventListener('click', async (e)=>{
+  const cp = e.target.closest('.copy');
+  if (cp){
+    const pre = cp.previousElementSibling;
+    try { await navigator.clipboard.writeText(pre.innerText); cp.textContent='Copied'; }
+    catch { cp.textContent='Select & copy'; }
+    setTimeout(()=>cp.textContent='Copy', 1400);
+    return;
+  }
+  const send = e.target.closest('.send');
+  if (send){
+    const box = send.closest('.try');
+    const out = box.querySelector('.out');
+    const m = box.dataset.m;
+    const url = box.querySelector('.tu').value.trim();
+    const ta = box.querySelector('.tb');
+    const headers = {};
+    let body;
+    if (ta){ headers['Content-Type']='application/json'; body = ta.value; }
+    if (box.dataset.auth === '1'){
+      const t = tok.value.trim();
+      if (!t){ out.className='out on'; out.innerHTML='<pre>This endpoint needs a token. Paste one in the <b>Admin token</b> box near the top of the page, or get one from POST /api/auth/login.</pre>'; return; }
+      headers.Authorization = 'Bearer ' + t;
+    }
+    send.textContent='…'; send.disabled=true;
+    const t0 = performance.now();
+    try {
+      const r = await fetch(url, { method:m, headers, body });
+      const ms = Math.round(performance.now()-t0);
+      const text = await r.text();
+      let shown, parsed = null;
+      try { parsed = JSON.parse(text); shown = pretty(parsed); } catch { shown = esc(text.slice(0,4000)); }
+      out.className='out on';
+      out.innerHTML = `<div class="codes"><span class="sc ${r.ok?'ok':'err'}">${r.status} ${esc(r.statusText)}</span><span class="sc" style="background:rgba(125,140,155,.15);color:var(--mute)">${ms} ms</span></div><pre>${shown}</pre>`;
+      // convenience: capture a token straight from the login response
+      const token = parsed && parsed.data && parsed.data.token;
+      if (token){
+        tok.value = token; localStorage.setItem('trustify_doc_token', token);
+        out.insertAdjacentHTML('beforeend','<p style="font-size:12px;color:var(--green2);margin-top:8px">✓ Token captured — admin endpoints on this page will now use it.</p>');
+      }
+    } catch (err){
+      out.className='out on';
+      out.innerHTML = `<div class="codes"><span class="sc err">Request failed</span></div><pre>${esc(err.message)}</pre>`;
+    }
+    send.textContent='Send'; send.disabled=false;
+  }
+});
+
+// open the endpoint named in the URL hash
+function openHash(){
+  const el = location.hash && document.querySelector(location.hash);
+  if (el && el.tagName==='DETAILS'){ el.open=true; el.scrollIntoView({block:'start'}); }
+  document.querySelectorAll('aside a').forEach(a=>a.classList.toggle('on', a.getAttribute('href')===location.hash));
+}
+addEventListener('hashchange', openHash);
+openHash();
+
+// mobile nav + theme
+const side = document.getElementById('side');
+document.getElementById('menu').onclick = ()=>side.classList.toggle('open');
+side.addEventListener('click', e=>{ if (e.target.closest('a')) side.classList.remove('open'); });
+document.getElementById('theme').onclick = ()=>{
+  const dark = matchMedia('(prefers-color-scheme:dark)').matches;
+  const cur = document.documentElement.dataset.theme || (dark?'dark':'light');
+  document.documentElement.dataset.theme = cur==='dark'?'light':'dark';
+};
+</script>
+</body>
+</html>

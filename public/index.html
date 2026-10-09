@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Trustify Trips – Travel. Verified.</title>
+<style>
+:root{--navy:#0a1424;--green:#1b6b3a;--green2:#2e9e4f;--gold:#f0a91c;--bg:#f7f8f7;--card:#fff;--ink:#14202b;--mute:#5d6b76;--line:#e4e8e6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b}}
+:root[data-theme="dark"]{--bg:#0d1218;--card:#161d26;--ink:#e8edf1;--mute:#93a0ab;--line:#26303b}
+*{box-sizing:border-box;margin:0}
+body{font-family:'Poppins','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--ink);line-height:1.5}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px}
+nav{background:var(--navy);color:#fff;position:sticky;top:env(safe-area-inset-top,0px);z-index:10}
+nav .wrap{display:flex;align-items:center;gap:28px;height:64px}
+.logo{font-weight:700;letter-spacing:.5px;line-height:1.1;font-size:15px}
+.logo small{display:block;color:var(--gold);font-size:10px;letter-spacing:2px}
+nav ul{list-style:none;display:flex;gap:26px;padding:0;margin:0 auto;font-size:13px}
+nav ul a{padding:22px 0;display:inline-block}
+nav ul a.on{border-bottom:2px solid var(--gold)}
+.btn{display:inline-block;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;font-family:inherit}
+.btn.g{background:var(--green);color:#fff}
+.btn.o{border-color:rgba(255,255,255,.5);color:#fff}
+.btn.y{background:var(--gold);color:#1a1200;font-weight:600;border-radius:999px;padding:10px 22px}
+.btn.ol{border:1px solid rgba(255,255,255,.6);color:#fff;border-radius:999px;padding:10px 22px}
+.hero{background:linear-gradient(90deg,rgba(6,14,28,.95) 5%,rgba(6,14,28,.35) 60%),radial-gradient(ellipse at 55% 35%,#e59a57 0,#6d4a5c 22%,#1c2c48 48%,#0a1424 80%);color:#fff;padding:56px 0 90px;position:relative;overflow:hidden}
+.hero:after{content:"";position:absolute;right:0;bottom:0;width:70%;height:65%;background:linear-gradient(160deg,transparent 45%,#243a58 46%,#33527a 60%,#0a1424 100%);clip-path:polygon(0 100%,25% 35%,38% 55%,58% 5%,78% 50%,100% 25%,100% 100%);opacity:.75}
+.hero .wrap{display:flex;justify-content:space-between;gap:30px;position:relative;z-index:1;flex-wrap:wrap}
+.hero h1{font-size:clamp(32px,5vw,46px);line-height:1.15;font-weight:700}
+.hero h1 span{color:#3fbf68;display:block}
+.hero p{margin:14px 0 20px;max-width:340px;font-size:14px}
+.search{background:#fff;border-radius:8px;padding:6px;display:flex;max-width:440px;gap:8px}
+.search input{flex:1;border:0;padding:8px 12px;font:inherit;font-size:13px;min-width:0;background:transparent;color:#222}
+.cta{display:flex;gap:12px;margin-top:16px;flex-wrap:wrap}
+.stats{background:rgba(15,25,40,.75);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 22px;display:grid;gap:14px;align-self:flex-start;backdrop-filter:blur(6px)}
+.stat{display:flex;gap:14px;align-items:center}
+.ic{width:40px;height:40px;border:1.5px solid var(--gold);border-radius:10px;display:grid;place-items:center;font-size:18px;flex:none}
+.stat b{font-size:19px;display:block;line-height:1.1}.stat small{font-size:11px;opacity:.8}
+.badges{background:var(--card);border-radius:10px;box-shadow:0 6px 24px rgba(0,0,0,.12);margin:-34px auto 0;position:relative;z-index:2;display:flex;justify-content:space-around;padding:16px 10px;flex-wrap:wrap;gap:12px;font-size:13px}
+.badges span{display:flex;gap:10px;align-items:center}.badges i{font-style:normal;color:var(--green2);font-size:20px}
+section{padding:34px 0 8px}
+.head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px}
+h2{font-size:20px}.head a{font-size:12px;font-weight:600;color:var(--green)}
+.dest{display:grid;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:12px}
+.d{height:170px;border-radius:10px;padding:12px;color:#fff;display:flex;flex-direction:column;justify-content:flex-end;font-size:11px;background:var(--g);position:relative;overflow:hidden}
+.d:before{content:"";position:absolute;inset:0;background:linear-gradient(transparent 35%,rgba(5,12,28,.9))}
+.d>*{position:relative}.d b{font-size:14px}.d em{font-style:normal;color:var(--gold)}.d u{text-decoration:none;color:var(--gold);font-size:10px}
+.verify{display:flex;gap:30px;align-items:center;flex-wrap:wrap;padding:20px 0}
+.verify>div:first-child{width:200px;font-size:12px;color:var(--mute)}
+.verify h2{color:var(--ink);margin-bottom:6px}
+.steps{flex:1;display:flex;justify-content:space-between;min-width:520px;overflow-x:auto;position:relative}
+.steps:before{content:"";position:absolute;left:5%;right:5%;top:22px;border-top:1.5px dashed var(--gold)}
+.step{text-align:center;font-size:11px;font-weight:500;width:80px;flex:none;position:relative}
+.step i{display:grid;place-items:center;width:46px;height:46px;margin:0 auto 8px;border:1.5px solid var(--gold);border-radius:50%;background:var(--card);font-style:normal;font-size:18px}
+.co{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px;padding-bottom:40px}
+.c{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;font-size:11px;color:var(--mute)}
+.top{display:flex;gap:12px;align-items:center;margin-bottom:8px}
+.av{width:44px;height:44px;border-radius:8px;background:var(--navy);color:var(--gold);display:grid;place-items:center;font:700 22px Georgia,serif;flex:none}
+.top b{color:var(--ink);font-size:13px}
+.score{font-size:24px;font-weight:700;color:var(--ink)}.score small{font-size:13px;font-weight:400}
+.stars{color:var(--gold);letter-spacing:1px}
+.meta{display:flex;gap:40px;margin:10px 0 12px}.meta b{display:block;color:var(--ink);font-size:12px}
+.acts{display:flex;gap:10px}.acts .btn{flex:1;text-align:center;padding:7px;font-size:11px}
+.acts .o2{border-color:var(--line);color:var(--ink)}
+footer{background:var(--navy);color:#a9b5c0;text-align:center;font-size:12px;padding:22px}
+@media(max-width:820px){nav ul{display:none}nav .wrap{justify-content:space-between}.steps{min-width:0}}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+
+.view{display:none}.view.on{display:block}
+.crumb{font-size:12px;opacity:.9;margin-bottom:18px}.crumb a{cursor:pointer}
+.hero2{color:#fff;padding:24px 0 34px;background:linear-gradient(90deg,rgba(6,14,28,.92) 10%,rgba(6,14,28,.3) 70%),linear-gradient(160deg,#5b7aa3,#1b2f52 55%,#0a1424);position:relative;overflow:hidden}
+.hero2:after{content:"";position:absolute;right:8%;bottom:0;width:38%;height:75%;background:linear-gradient(#8a6b4f,#3d3446);clip-path:polygon(50% 0,60% 20%,90% 35%,100% 100%,0 100%,10% 35%,40% 20%);opacity:.55}
+.hero2 .wrap{position:relative;z-index:1;display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.hero2 h1{font-size:clamp(30px,5vw,44px)}.sub{font-size:13px;margin:6px 0 10px}.hero2 p{max-width:460px;font-size:14px}
+.chips{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.chip{background:rgba(10,20,36,.7);border:1px solid rgba(255,255,255,.2);border-radius:8px;padding:8px 12px;font-size:12px}
+.glance{background:rgba(15,25,40,.8);border-radius:12px;padding:16px 20px;align-self:flex-start;min-width:290px}
+.glance h3{font-size:14px;margin-bottom:12px}.gg{display:grid;grid-template-columns:1fr 1fr;gap:14px}.gg div{font-size:11px}.gg b{font-size:20px;display:block}
+.lay{display:grid;grid-template-columns:230px 1fr 260px;gap:20px;padding:26px 0 40px;align-items:start}
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;font-size:12px}
+.box h3{font-size:15px;margin-bottom:12px}.box label{display:flex;gap:8px;align-items:center;padding:5px 0;cursor:pointer}.box label span{margin-left:auto;color:var(--mute)}
+.box h4{font-size:12px;margin:10px 0 4px}
+.lh{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;font-size:12px;gap:10px;flex-wrap:wrap}.lh h2{font-size:17px}
+select{font:inherit;font-size:12px;padding:7px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink)}
+.row{display:grid;grid-template-columns:90px 1fr 150px 150px;gap:16px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:14px;font-size:12px;color:var(--mute)}
+.row .av{width:80px;height:80px;font-size:38px;background:#fff;color:var(--navy)}
+.row h3{color:var(--ink);font-size:16px;margin:4px 0}
+.tag{display:inline-block;border:1px solid #b9dcc5;background:#eef8f1;color:var(--green);border-radius:5px;padding:2px 8px;font-size:10px;margin:6px 4px 0 0}
+.pill{background:var(--gold);color:#1a1200;font-size:10px;font-weight:600;padding:2px 8px;border-radius:4px}.ver{font-size:10px;border:1px solid #b9dcc5;color:var(--green);padding:1px 8px;border-radius:999px;margin-left:6px}
+.exc{background:var(--green);color:#fff;font-size:10px;padding:2px 8px;border-radius:4px;margin-left:6px;vertical-align:middle}
+.price{font-size:20px;font-weight:700;color:var(--ink)}
+.stk{display:grid;gap:6px}.ck{color:var(--green2)}
+.chead{color:#fff;padding:20px 0 26px;background:linear-gradient(90deg,rgba(6,14,28,.92) 10%,rgba(6,14,28,.35)),linear-gradient(160deg,#4d6b94,#1b2f52 55%,#0a1424);position:relative;overflow:hidden}
+.chead:after{content:"";position:absolute;right:22%;bottom:0;width:26%;height:80%;background:linear-gradient(#9b8266,#3d3446);clip-path:polygon(50% 0,60% 20%,90% 35%,100% 100%,0 100%,10% 35%,40% 20%);opacity:.5}
+.chead .wrap{position:relative;z-index:1;display:flex;gap:24px;flex-wrap:wrap;align-items:center}
+.big{width:130px;height:130px;background:#fff;border-radius:16px;display:grid;place-items:center;font:700 80px Georgia,serif;color:var(--navy)}
+.chead h1{font-size:34px}.gold{color:var(--gold);font-size:12px}
+.vb{display:inline-block;border:1px solid var(--green2);background:rgba(46,158,79,.15);border-radius:6px;padding:5px 12px;font-size:11px;margin:10px 8px 0 0}
+.ts{margin-left:auto;background:rgba(15,25,40,.85);border-radius:14px;padding:20px 28px;text-align:center;min-width:250px}
+.ts b{font-size:52px}.ts .btn{display:block;margin-top:12px;border:1px solid var(--gold);color:#fff}
+.tabs{background:var(--card);border-bottom:1px solid var(--line)}.tabs .wrap{display:flex;gap:30px;align-items:center;overflow-x:auto}
+.tab{padding:16px 0;font-size:13px;cursor:pointer;white-space:nowrap;border:0;background:none;color:var(--ink);font-family:inherit;border-bottom:2px solid transparent}.tab.on{color:var(--green);border-color:var(--green);font-weight:600}
+.save{margin-left:auto;border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:6px;padding:8px 16px;cursor:pointer;font:inherit;font-size:13px}
+.ov{display:grid;grid-template-columns:1.1fr 1fr .8fr;gap:20px;padding:24px 0 40px;align-items:start}
+.bd{display:flex;gap:14px;align-items:center;flex-wrap:wrap}.bd ul{list-style:none;padding:0;flex:1;min-width:190px}.bd li{display:flex;justify-content:space-between;padding:6px 0;font-size:12px}
+.kv{display:flex;justify-content:space-between;padding:10px 0;border-top:1px solid var(--line)}.kv b{color:var(--ink)}
+.btn.w{display:block;text-align:center;margin-top:10px;padding:11px}.btn.wo{border:1px solid var(--line);color:var(--ink)}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:20}.toast.on{opacity:1}
+@media(max-width:980px){.lay,.ov{grid-template-columns:1fr}.row{grid-template-columns:70px 1fr}.row>div:nth-child(n+3){grid-column:1/-1}.ts{margin-left:0}}
+
+.chipb{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:999px;padding:8px 16px;font:inherit;font-size:12px;cursor:pointer;margin:0 8px 8px 0}.chipb.on{background:var(--green);color:#fff;border-color:var(--green)}
+.tw{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:10px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-size:13px}th,td{padding:12px 16px;border-bottom:1px solid var(--line);text-align:center}th:first-child,td:first-child{text-align:left;color:var(--mute);width:200px}
+th{font-size:14px;vertical-align:top}th small{display:block;font-weight:400;color:var(--green);cursor:pointer;margin-top:4px}
+td.best{background:rgba(46,158,79,.14);color:var(--green);font-weight:700}
+.rv{display:grid;grid-template-columns:240px 1fr;gap:20px;padding:24px 0 40px;align-items:start}
+.bar{display:flex;align-items:center;gap:8px;font-size:12px;margin:6px 0}.bar i{flex:1;height:8px;background:var(--line);border-radius:4px;overflow:hidden}.bar u{display:block;height:100%;background:var(--gold)}
+.rc{border-top:1px solid var(--line);padding:14px 0;font-size:13px}.rc:first-of-type{border:0}.rc small{color:var(--mute)}
+.pk{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px;padding:24px 0 40px}
+.pk ul{list-style:none;padding:0;margin:10px 0;font-size:12px}.pk li:before{content:"✔ ";color:var(--green2)}
+@media(max-width:820px){.rv{grid-template-columns:1fr}}
+
+.modal{position:fixed;inset:0;background:rgba(5,10,20,.6);display:none;place-items:center;z-index:30;padding:16px}.modal.on{display:grid}
+.mb{background:var(--card);color:var(--ink);border-radius:12px;padding:22px;width:100%;max-width:440px;max-height:90vh;overflow:auto;position:relative}.mb h3{margin-bottom:12px}
+.mb .x{position:absolute;right:12px;top:10px;border:0;background:none;font-size:18px;cursor:pointer;color:var(--ink)}
+.fl{display:block;font-size:12px;margin-bottom:10px}.fl input,.fl select,.fl textarea,.fi{display:block;width:100%;margin-top:4px;padding:9px 10px;border:1px solid var(--line);border-radius:6px;background:var(--card);color:var(--ink);font:inherit;font-size:13px}
+details{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;font-size:13px}summary{cursor:pointer;font-weight:600}details p{margin-top:8px;color:var(--mute)}
+
+/* ---- Mobile responsive ---- */
+html,body{overflow-x:hidden}
+img,svg{max-width:100%}
+.burger{display:none;width:40px;height:40px;border:1px solid rgba(255,255,255,.35);border-radius:8px;background:none;color:#fff;font-size:20px;cursor:pointer;flex:none;place-items:center}
+nav ul li.m-only{display:none}
+@media(max-width:820px){
+ nav .wrap{gap:12px}
+ .burger{display:grid}
+ nav ul{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:0;background:var(--navy);padding:6px 20px 16px;border-top:1px solid rgba(255,255,255,.1);box-shadow:0 12px 24px rgba(0,0,0,.3);max-height:calc(100vh - 64px);overflow-y:auto}
+ nav.open ul{display:flex}
+ nav ul a{display:block;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.08);font-size:15px}
+ nav ul a.on{border-bottom:1px solid rgba(255,255,255,.08);color:var(--gold)}
+ nav ul li.m-only{display:block;padding-top:12px}
+ nav ul li.m-only a{display:block;border:0;text-align:center;padding:12px}
+ .nav-act .btn.g{display:none}
+ .nav-act{margin-left:auto}
+}
+@media(max-width:600px){
+ .wrap{padding:0 16px}
+ .hero{padding:36px 0 70px}
+ .hero .wrap>div{width:100%}
+ .hero p{max-width:none}
+ .search{max-width:none;flex-wrap:wrap}
+ .search input{flex:1 1 100%;padding:10px 12px}
+ .search .btn{flex:1 1 100%;text-align:center;padding:10px}
+ .cta .btn{flex:1;text-align:center}
+ .stats{width:100%;grid-template-columns:1fr 1fr}
+ .stat{gap:10px}.ic{width:34px;height:34px;font-size:15px}
+ .badges{display:grid;grid-template-columns:1fr 1fr;padding:14px;margin:-28px 0 0;font-size:12px}
+ .head{flex-wrap:wrap;gap:6px}
+ .dest{grid-template-columns:repeat(2,1fr)}
+ .d{height:140px}
+ .verify{gap:18px}.verify>div:first-child{width:100%}
+ .steps{justify-content:flex-start;gap:6px;padding-bottom:6px;-webkit-overflow-scrolling:touch}
+ .co,.pk{grid-template-columns:1fr}
+ .meta{gap:24px;flex-wrap:wrap}
+ .glance,.ts{min-width:0;width:100%}
+ .gg b{font-size:18px}
+ .chead h1{font-size:clamp(24px,7vw,34px)}
+ .big{width:84px;height:84px;font-size:50px;border-radius:12px}
+ .ts b{font-size:42px}
+ .row{grid-template-columns:56px 1fr;gap:12px;padding:12px}
+ .row .av{width:56px;height:56px;font-size:28px}
+ .tabs .wrap{gap:20px}
+ th:first-child,td:first-child{width:120px}
+ th,td{padding:10px 12px}
+ .toast{left:16px;right:16px;transform:none;text-align:center;bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+ .mb{padding:18px}
+ footer{padding:20px 16px}
+}
+@media(max-width:360px){.dest{gap:8px}.stats{grid-template-columns:1fr}.logo{font-size:13px}}
+</style>
+<script>
+/* Connects the portal to the Express API served from this same server. */
+window.TT_API='/api';
+(function(){const subs={};
+ const coll=name=>({
+  /* Every API response is { success, statusCode, message, data } — unwrap data, surface message. */
+  async get(){const r=await fetch('/api/'+name);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.message||('Could not load '+name));const d=j.data||[];return{empty:!d.length,docs:d.map(x=>({data:()=>x}))}},
+  async add(doc){const r=await fetch('/api/'+name,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(doc)});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.message||'Could not save. Try again.');(subs[name]||[]).forEach(f=>f());return j.data||{}},
+  onSnapshot(cb){const run=()=>this.get().then(cb).catch(()=>{});(subs[name]=subs[name]||[]).push(run);run();const t=setInterval(run,30000);return()=>clearInterval(t)}
+ });
+ window.claude={use:async()=>{const r=await fetch('/api/health');if(!r.ok)throw new Error('API offline');return{collection:coll}}};
+})();
+</script>
+</head>
+<body>
+<nav id="nav"><div class="wrap">
+  <a class="logo" data-go="home" href="#">🛡️ TRUSTIFY TRIPS<small>TRAVEL. VERIFIED.</small></a>
+  <ul>
+    <li><a data-nav="home" data-go="home" href="#">Home</a></li><li><a data-nav="dest" data-go="dest" href="#">Destinations</a></li><li><a data-nav="companies" data-go="home" data-scroll="companies" href="#">Verified Companies</a></li>
+    <li><a data-nav="compare" data-go="compare" href="#">Compare</a></li><li><a data-nav="reviews" data-go="reviews" href="#">Reviews</a></li><li><a data-nav="resources" data-go="resources" href="#">Resources</a></li><li><a data-nav="about" data-go="about" href="#">About</a></li>
+    <li class="m-only"><a class="btn g" data-form="apply" href="#">Become Verified</a></li>
+  </ul>
+  <div class="nav-act" style="display:flex;gap:10px"><a class="btn o" id="loginBtn" data-form="login" href="#">Login</a><a class="btn g" data-form="apply" href="#">Become Verified</a></div>
+<button class="burger" id="burger" aria-label="Open menu" aria-expanded="false">☰</button>
+</div></nav>
+
+<div class="view" id="v-home"><header class="hero"><div class="wrap">
+  <div>
+    <h1>Find India's Most <span>Trusted Travel Companies</span></h1>
+    <p>Every company is independently reviewed, verified and ranked before we recommend it.</p>
+    <div class="search"><input id="q" placeholder="Where do you want to travel?" aria-label="Destination"><button class="btn g" data-search="1">Search Destination</button></div>
+    <div class="cta"><a class="btn y" data-go="home" data-scroll="companies" href="#">Explore Rankings</a><a class="btn ol" data-go="about" href="#">How We Verify</a></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="ic">🏢</div><div><b>450+</b><small>Verified Companies</small></div></div>
+    <div class="stat"><div class="ic">📍</div><div><b>90+</b><small>Destinations</small></div></div>
+    <div class="stat"><div class="ic">💬</div><div><b>50,000+</b><small>Verified Reviews</small></div></div>
+    <div class="stat"><div class="ic">🛡️</div><div><b>9</b><small>Trust Parameters</small></div></div>
+  </div>
+</div></header>
+
+<div class="wrap"><div class="badges">
+  <span><i>✔</i>Verified &amp; Tested</span><span><i>👤</i>Background Checked</span><span><i>📄</i>Transparent Pricing</span><span><i>⚙</i>Service Tested</span><span><i>🎧</i>Best Customer Support</span>
+</div></div>
+
+<main class="wrap">
+<section id="dest">
+  <div class="head"><h2>Popular Destinations</h2><a data-go="browse" data-mode="dest" href="#">View All Destinations →</a></div>
+  <div class="dest" id="destGrid"></div>
+</section>
+
+<section id="verify"><div class="verify">
+  <div><h2>How We Verify</h2>We don't rely on reviews. We test, evaluate and verify every company.<br><br><a class="btn g" data-go="about" href="#">Know Our Process</a></div>
+  <div class="steps" id="steps"></div>
+</div></section>
+
+<section id="companies">
+  <div class="head"><h2>Top Rated Companies</h2><a data-go="browse" data-mode="co" href="#">View All Companies →</a></div>
+  <div class="co" id="coGrid"></div>
+</section>
+</main></div>
+
+<div class="view" id="v-dest">
+<div class="hero2"><div class="wrap"><div>
+ <div class="crumb"><a data-go="home">Home</a> › <a data-go="dest">Destinations</a> › Uttarakhand › <b id="dName">Kedarnath</b></div>
+ <h1 id="dTitle">Kedarnath</h1><div class="sub" id="dLoc">📍 Uttarakhand, India</div>
+ <p id="dDesc"></p>
+ <div class="chips" id="dChips"></div>
+</div>
+<div class="glance"><h3>At a Glance</h3><div class="gg" id="dGl"></div></div></div></div></div>
+<div class="wrap lay">
+ <aside><div class="box"><div class="lh"><h3 style="margin:0">Filters</h3><a href="#" id="reset" style="color:var(--green)">↻ Reset</a></div>
+  <h4>Budget (Per Person)</h4><div id="fb"></div>
+  <h4>Trip Duration</h4><label><input type="checkbox"> 2N / 3D<span>4</span></label><label><input type="checkbox" checked> 3N / 4D<span>15</span></label><label><input type="checkbox"> 4N / 5D<span>8</span></label><label><input type="checkbox"> 5N / 6D &amp; above<span>2</span></label>
+  <h4>Departure City ▾</h4><h4>Accommodation ▾</h4><h4>Rating ▾</h4></div></aside>
+ <div><div class="lh"><h2 id="cnt"></h2><span>Sort By: <select id="sort"><option value="s">Trust Score (High to Low)</option><option value="p">Price (Low to High)</option></select></span></div><div id="list"></div></div>
+ <aside><div class="box"><h3>Why Trust These Rankings?</h3><div class="stk"><span><i class="ck">✔</i> 9 Parameters Evaluation</span><span><i class="ck">✔</i> Company Background Check</span><span><i class="ck">✔</i> Package &amp; Itinerary Analysis</span><span><i class="ck">✔</i> Mystery Booking &amp; Experience</span><span><i class="ck">✔</i> Customer Reviews Verified</span><span><i class="ck">✔</i> Regular Re-evaluation</span></div></div>
+ <div class="box"><h3>Need Help Choosing?</h3>Our travel experts are here to help you.<a class="btn g w" data-wa="1" href="#">💬 Chat on WhatsApp</a><a class="btn wo w" data-form="callback" href="#">📞 Request a Call Back</a></div></aside>
+</div></div>
+
+<div class="view" id="v-company">
+<div class="chead"><div class="wrap" style="display:block"><div class="crumb"><a data-go="home">Home</a> › <a data-go="dest">Destinations</a> › Uttarakhand › Kedarnath › <b id="cCrumb"></b></div>
+<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:center"><div class="big" id="cLogo"></div>
+<div><div class="gold">🛡️ Gold Verified Company</div><h1 id="cName"></h1><div class="sub">📍 <span id="cCity"></span></div><div class="sub"><span id="cExp"></span> Years Experience | 24+ Destinations | 50K+ Travelers</div><span class="vb">✔ Verified</span><span class="vb">🛡 Background Checked</span><span class="vb">🛡 Service Tested</span></div>
+<div class="ts"><div>TRUST SCORE 🛡️</div><b id="cScore"></b><span style="font-size:22px">/100</span><div style="font-size:18px">Excellent</div><div class="stars" style="font-size:22px">★★★★★</div><div style="font-size:12px">Last Verified: July 2024</div><a class="btn" id="cCmp" data-cmp="" data-goto="1" href="#">Compare Company</a></div></div></div></div>
+<div class="tabs"><div class="wrap" id="tabs"></div></div>
+<div class="wrap" id="tabPanel"></div></div>
+
+<div class="view" id="v-compare"><div class="wrap" style="padding-top:26px;padding-bottom:44px">
+<div class="crumb" style="color:var(--mute)"><a data-go="home">Home</a> › Compare</div>
+<h2 style="font-size:26px;margin-bottom:4px">Compare Travel Companies</h2><p style="color:var(--mute);font-size:13px;margin-bottom:14px">Pick 2 or 3 verified companies. The best value in each row is highlighted.</p>
+<div id="pick"></div><div class="tw" id="cmpTbl"></div></div></div>
+<div class="view" id="v-browse"><div class="wrap" style="padding:26px 20px 44px"><h2 style="font-size:26px;margin-bottom:12px">Explore</h2><div id="bm"><button class="chipb" data-mode="dest">Destinations</button><button class="chipb" data-mode="co">Companies</button></div><input id="bq" class="fi" placeholder="Search by name or place" aria-label="Search"><div id="bl" style="margin-top:16px"></div></div></div>
+<div class="view" id="v-reviews"><div class="wrap" style="padding:26px 20px 44px"><div class="lh"><h2 style="font-size:26px">Traveller Reviews</h2><a class="btn g" data-form="review" href="#">Write a review</a></div><p id="rvs" style="color:var(--mute);font-size:13px;margin-bottom:12px"></p><div class="box" id="rvl"></div></div></div>
+<div class="view" id="v-resources"><div class="wrap" style="padding:26px 20px 44px;max-width:820px"><h2 style="font-size:26px;margin-bottom:14px">Travel Resources</h2><details><summary>How to choose a trustworthy travel company</summary><p>Check that the company shows a verified registration, a real office address and a clear cancellation policy. Compare itineraries line by line, not just the headline price.</p></details><details><summary>Kedarnath yatra checklist</summary><p>Carry a rain jacket, warm layers, a valid photo ID, your yatra registration and any regular medicines. Book stays before the peak season from May to June.</p></details><details><summary>How the Trust Score works</summary><p>Each company is scored out of 100 across 9 parameters, including itinerary quality, safety, transparency and support, after documents, mystery bookings and customer feedback are checked.</p></details><details><summary>Spotting hidden charges</summary><p>Ask what is not included: entry fees, permits, heater or oxygen charges, and pony or helicopter costs. A trustworthy company lists inclusions and exclusions in writing.</p></details><details><summary>Best time to visit popular destinations</summary><p>Kedarnath and Spiti are best from May to October, Leh Ladakh from June to September, Kerala from September to March and Bali from April to October.</p></details><details><summary>Travel safety basics</summary><p>Share your itinerary with family, keep digital copies of documents, buy travel insurance and confirm the operator's emergency contact before you leave.</p></details></div></div>
+<div class="view" id="v-about"><div class="wrap" style="padding:26px 20px 44px;max-width:820px"><h2 style="font-size:26px;margin-bottom:8px">About Trustify Trips</h2><p style="color:var(--mute);font-size:14px;margin-bottom:20px">We help travellers pick trustworthy travel companies. We don't rely on reviews alone: every company is tested, evaluated and verified before it is ranked.</p><div class="box" id="process"><h3>How We Verify</h3><div class="kv"><b>1. Application</b><span>The company applies with its basic details.</span></div><div class="kv"><b>2. Document Verification</b><span>GST, registration and tourism licences are checked.</span></div><div class="kv"><b>3. Background Check</b><span>Owners, history and complaints are reviewed.</span></div><div class="kv"><b>4. Package Analysis</b><span>Itineraries and pricing are checked for transparency.</span></div><div class="kv"><b>5. Mystery Booking</b><span>Our team books and experiences a real trip.</span></div><div class="kv"><b>6. Customer Feedback</b><span>Traveller reviews are verified and analysed.</span></div><div class="kv"><b>7. Final Inspection</b><span>A final review of service quality and safety.</span></div><div class="kv"><b>8. Trust Score</b><span>A score out of 100 is published and re-evaluated regularly.</span></div></div><a class="btn g" data-form="apply" href="#">Become Verified</a></div></div>
+<div class="modal" id="modal"></div>
+<footer>© 2026 Trustify Trips · Travel. Verified.</footer>
+
+<script>
+const dests=[["Kedarnath",32,4.7,"#8a6a52,#2b4463"],["Leh Ladakh",28,4.8,"#7d8fa8,#28405f"],["Spiti Valley",18,4.6,"#a7855f,#2c4665"],["Kashmir",26,4.7,"#6f9ac0,#1f3f66"],["Kerala",22,4.6,"#2f9c8a,#14506a"],["Thailand",15,4.5,"#a56cb0,#2a2f6b"],["Vietnam",14,4.5,"#5aa68f,#1c4a5e"],["Bali",12,4.5,"#c58a5a,#294a6a"]];
+document.getElementById('destGrid').innerHTML=dests.map(d=>{const[c1,c2]=d[3].split(',');return `<a class="d" data-go="dest" href="#" style="--g:linear-gradient(160deg,${c1},${c2})"><b>${d[0]}</b><span>${d[1]} Companies</span><span><em>★</em> ${d[2]} Avg Rating</span><u>Explore →</u></a>`}).join('');
+const steps=[["📝","Application"],["🪪","Document Verification"],["🔍","Background Check"],["📦","Package Analysis"],["🕵️","Mystery Booking"],["💬","Customer Feedback"],["✅","Final Inspection"],["🏅","Trust Score"]];
+document.getElementById('steps').innerHTML=steps.map(s=>`<div class="step"><i>${s[0]}</i>${s[1]}</div>`).join('');
+const cos=[["H","Holiday Heaven",96,4.8,24,"Jan 2023"],["W","Wander India",94,4.7,18,"Mar 2023"],["M","Mountain Miles",93,4.6,26,"Feb 2023"],["D","Dream Trails",92,4.6,26,"Apr 2023"]];
+document.getElementById('coGrid').innerHTML=cos.map(c=>`<div class="c"><div class="top"><div class="av">${c[0]}</div><div><b>${c[1]}</b><br>Trust Score</div></div>
+<div class="score">${c[2]}<small>/100</small> <span class="stars">${'★'.repeat(Math.round(c[3]))}</span> <small>(${c[3]})</small></div>
+<div class="meta"><div>Destinations<b>${c[4]}</b></div><div>Verified Since<b>${c[5]}</b></div></div>
+<div class="acts"><a class="btn g" data-go="company" data-id="${c[0]}" href="#">View Details</a><a class="btn o2" data-cmp="${c[0]}" href="#">Compare</a></div></div>`).join('');
+</script>
+
+<div class="toast" id="toast"></div>
+<script>
+const info={H:["Dehradun, Uttarakhand",8,10499,2340,["Custom Itineraries","24x7 Support","Great Hotels","On-time Service"]],W:["Haridwar, Uttarakhand",6,9499,1786,["Well Planned","Good Food","Clean Vehicles","Supportive Staff"]],M:["Rishikesh, Uttarakhand",7,9999,1452,["Experienced Team","Good Stays","Safe Travel","Value for Money"]],D:["Dehradun, Uttarakhand",5,11499,980,["Scenic Routes","Small Groups","Local Guides"]]};
+const $=q=>document.querySelector(q);
+const rng=[["Under ₹8,000",0,8000],["₹8,000 - ₹12,000",8000,12000],["₹12,000 - ₹18,000",12000,18000],["₹18,000 & above",18000,1e9]];
+$('#fb').innerHTML=rng.map((r,i)=>`<label><input type="checkbox" data-i="${i}" ${i==1?'checked':''}> ${r[0]}</label>`).join('');
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1600)}
+function renderList(){
+ const on=[...document.querySelectorAll('#fb input:checked')].map(i=>rng[i.dataset.i]);
+ let l=cos.filter(c=>{const p=info[c[0]][2];return !on.length||on.some(r=>p>=r[1]&&p<r[2])});
+ l.sort($('#sort').value=='p'?(a,b)=>info[a[0]][2]-info[b[0]][2]:(a,b)=>b[2]-a[2]);
+ $('#cnt').textContent=l.length+' Verified Companies Found';
+ $('#list').innerHTML=l.map((c,i)=>{const f=info[c[0]];return `<div class="row"><div class="av">${c[0]}</div><div>${i==0?'<span class="pill">Best Overall</span><br>':''}<h3>${c[1]}<span class="ver">✔ Verified</span></h3>📍 ${f[0]} &nbsp; 👤 ${f[1]}+ Years Experience<br>${f[4].map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+ <div>Trust Score<div class="score">🛡 ${c[2]}<small>/100</small><span class="exc">Excellent</span></div><span class="stars">★★★★★</span><br>(${c[3]}/5 from ${f[3].toLocaleString()} reviews)</div>
+ <div>3N/4D Package<div class="price">₹${f[2].toLocaleString('en-IN')}</div>Per Person<a class="btn g w" data-go="company" data-id="${c[0]}" href="#">View Full Report</a><a class="btn wo w" data-cmp="${c[0]}" href="#">Compare</a></div></div>`}).join('')||'<div class="box">No companies match these filters.</div>';
+}
+document.addEventListener('change',e=>{if(e.target.closest('#fb')||e.target.id=='sort')renderList()});
+$('#reset').onclick=e=>{e.preventDefault();document.querySelectorAll('#fb input').forEach(i=>i.checked=false);renderList()};
+const radar=v=>{const n=v.length,R=90,c=110,pt=(i,r)=>[c+r*Math.sin(2*Math.PI*i/n),c-r*Math.cos(2*Math.PI*i/n)].join(',');
+ const rings=[.25,.5,.75,1].map(k=>`<polygon points="${v.map((_,i)=>pt(i,R*k)).join(' ')}" fill="none" stroke="var(--line)"/>`).join('');
+ return `<svg viewBox="0 0 220 220" width="210">${rings}<polygon points="${v.map((x,i)=>pt(i,R*x/100)).join(' ')}" fill="rgba(46,158,79,.35)" stroke="var(--green)" stroke-width="2"/></svg>`};
+const tabs=["Overview","Reviews (2,340)","Packages","Destinations","Photos","Documents","Policies","Q&A"];
+const other={"Reviews (2,340)":"Rated 4.8/5 by 2,340 verified travellers. \"Well planned, transparent pricing and great support.\" — verified traveller","Packages":"3N/4D Kedarnath from ₹10,499 · 4N/5D Kedarnath + Badrinath from ₹14,999 · Char Dham Yatra on request.","Destinations":"Kedarnath, Badrinath, Auli, Rishikesh, Chopta, Valley of Flowers and 18 more.","Photos":"Traveller and trip photo gallery will appear here.","Documents":"GST Certificate, Company Registration, Tourism License and Insurance — all verified.","Policies":"Free cancellation up to 15 days before departure. Refunds are processed within 7 working days.","Q&A":"Have a question? Ask the company or read answers from past travellers."};
+const bk=[["Itinerary Quality",92],["Accommodation",90],["Transport",88],["Pricing Transparency",95],["Customer Support",96],["Safety",96],["Meals",80],["Tour Management",91],["Value For Money",89]].slice(0,8);
+let cur=cos[0],tab=0,saved=false;
+function renderCompany(){
+ const c=cur,f=info[c[0]];
+ $('#cCrumb').textContent=c[1];$('#cName').textContent=c[1];$('#cLogo').textContent=c[0];$('#cCity').textContent=f[0]+', India';$('#cExp').textContent=f[1]+'+';$('#cScore').textContent=c[2];$('#cCmp').dataset.cmp=c[0];
+ $('#tabs').innerHTML=tabs.map((t,i)=>`<button class="tab ${i==tab?'on':''}" data-tab="${i}">${t}</button>`).join('')+`<button class="save" id="save">${saved?'❤️':'♡'} Save Company</button>`;
+ $('#tabPanel').innerHTML=tab==1?revPanel():tab==2?pkgPanel():tab?`<div class="box" style="margin:24px 0 40px;font-size:14px"><h3>${tabs[tab].replace(/ \(.*/,'')}</h3>${other[tabs[tab]]}</div>`:
+ `<div class="ov"><div class="box"><h3>Trust Score Breakdown</h3><div class="bd">${radar(bk.map(b=>b[1]))}<ul>${bk.map(b=>`<li>${b[0]}<b>${b[1]}/100</b></li>`).join('')}</ul></div></div>
+ <div class="box"><h3>About ${c[1]}</h3><p style="color:var(--mute);margin-bottom:10px">${c[1]} is a ${f[0].split(',')[0]} based travel company with ${f[1]}+ years of experience in Himalayan destinations. Known for transparent pricing, well planned itineraries and 24x7 customer support.</p>
+ <div class="kv">Verified Since<b>${c[5]}</b></div><div class="kv">Years in Business<b>${f[1]}+ Years</b></div><div class="kv">Head Office<b>${f[0]}</b></div><div class="kv">Service Availability<b>24x7</b></div><div class="kv">Destinations Covered<b>${c[4]}+</b></div><div class="kv">Company Size<b>50-100 People</b></div></div>
+ <div><div class="box"><h3>3N/4D Kedarnath Package</h3>Starting from<div class="price">₹${f[2].toLocaleString('en-IN')} <small style="font-size:13px;font-weight:400">/ Person</small></div><a class="btn g w" data-tab="2" href="#">View All Packages</a><a class="btn wo w" data-form="enquiry" href="#">💬 Enquire Now</a></div>
+ <div class="box"><div class="lh"><h3 style="margin:0">Verified Documents</h3><a data-tab="5" href="#" style="color:var(--green)">View All</a></div>${["GST Certificate","Company Registration","Tourism License"].map(d=>`<div class="kv">📄 ${d}<span class="ver">✔ Verified</span></div>`).join('')}</div></div></div>`;
+}
+function go(v,id,sc){
+ document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id=='v-'+v));
+ if(v=='company'){cur=cos.find(c=>c[0]==id)||cur;tab=0;renderCompany()}
+ if(v=='dest')renderList();if(v=='compare')renderCmp();
+ document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav==(sc||v)));
+ sc?$('#'+sc).scrollIntoView():scrollTo(0,0);
+}
+document.addEventListener('click',e=>{
+ const k=e.target.closest('[data-cmp]'),rf=e.target.closest('[data-rf]'),g=e.target.closest('[data-go]'),t=e.target.closest('[data-tab]'),m=e.target.closest('[data-toast]');
+ if(e.target.closest('#save')){saved=!saved;renderCompany();return}
+ if(rf){e.preventDefault();rvf=+rf.dataset.rf;renderCompany();return}
+ if(k){e.preventDefault();addCmp(k.dataset.cmp,k.dataset.goto);return}
+ if(t){e.preventDefault();tab=+t.dataset.tab;renderCompany();return}
+ if(m){e.preventDefault();toast(m.dataset.toast);return}
+ if(g){e.preventDefault();go(g.dataset.go,g.dataset.id,g.dataset.scroll)}
+});
+
+let cmp=[],rvf=0;
+function addCmp(id,goto){
+ const i=cmp.indexOf(id);
+ if(i>-1)cmp.splice(i,1);else if(cmp.length>=3){toast('You can compare up to 3 companies');return}else cmp.push(id);
+ if(goto&&!cmp.includes(id))cmp.push(id);
+ if(goto)return go('compare');
+ if($('#v-compare').classList.contains('on'))renderCmp();else toast(i>-1?'Removed from compare':`Added to compare (${cmp.length}) – open Compare in the menu`);
+}
+function renderCmp(){
+ const l=cmp.map(id=>cos.find(c=>c[0]==id));
+ $('#pick').innerHTML=cos.map(c=>`<button class="chipb ${cmp.includes(c[0])?'on':''}" data-cmp="${c[0]}">${cmp.includes(c[0])?'✔':'+'} ${c[1]}</button>`).join('');
+ if(l.length<2){$('#cmpTbl').innerHTML='<div style="padding:24px;font-size:13px">Select at least 2 companies above to start comparing.</div>';return}
+ const rows=[["Trust Score /100",c=>c[2],1],["Average Rating",c=>c[3],1],["3N/4D Price per person",c=>info[c[0]][2],-1,v=>'₹'+v.toLocaleString('en-IN')],["Years of Experience",c=>info[c[0]][1],1],["Destinations",c=>c[4],1],["Verified Reviews",c=>info[c[0]][3],1,v=>v.toLocaleString()],["Verified Since",c=>c[5]]].concat(bk.map(b=>[b[0],c=>Math.min(99,b[1]+c[2]-96),1]));
+ $('#cmpTbl').innerHTML='<table><tr><th></th>'+l.map(c=>`<th>${c[1]}<small data-go="company" data-id="${c[0]}">View report</small><small data-cmp="${c[0]}" style="color:var(--mute)">Remove</small></th>`).join('')+'</tr>'+
+ rows.map(r=>{const v=l.map(c=>r[1](c)),b=r[2]?(r[2]>0?Math.max(...v):Math.min(...v)):null;return '<tr><td>'+r[0]+'</td>'+v.map(x=>`<td class="${x===b?'best':''}">${r[3]?r[3](x):x}</td>`).join('')+'</tr>'}).join('')+'</table>';
+}
+function revPanel(){
+ const all=[["Aarav S.",5,"Sep 2024","Well planned trip. Hotels matched the itinerary exactly and the guide was very helpful.","3N/4D Kedarnath"],["Neha P.",5,"Aug 2024","Transparent pricing with no hidden charges. Support replied on WhatsApp at midnight.","3N/4D Kedarnath"],["Rohit M.",4,"Aug 2024","Good stays and food. Pickup was 30 minutes late but they kept us informed.","4N/5D Kedarnath + Badrinath"],["Kavya R.",5,"Jul 2024","Safe, well-managed trip for my parents. Would book again.","3N/4D Kedarnath"],["Imran K.",3,"Jul 2024","Trip was fine, but the helicopter slot changed at the last minute.","Kedarnath Heli Package"]];
+ const l=all.filter(r=>!rvf||r[1]==rvf),d=[[5,78],[4,15],[3,4],[2,2],[1,1]];
+ return `<div class="rv"><div class="box"><h3>Ratings</h3><div class="score">${cur[3]}<small>/5</small></div><span class="stars">★★★★★</span><br><small>${info[cur[0]][3].toLocaleString()} verified reviews</small><div style="margin-top:12px">${d.map(x=>`<div class="bar">${x[0]}★<i><u style="width:${x[1]}%"></u></i>${x[1]}%</div>`).join('')}</div></div>
+ <div class="box"><div class="lh"><h3 style="margin:0">Traveller Reviews</h3><span>${[0,5,4,3].map(n=>`<button class="chipb ${rvf==n?'on':''}" data-rf="${n}">${n?n+'★':'All'}</button>`).join('')}</span></div>
+ ${l.map(r=>`<div class="rc"><b>${r[0]}</b> <span class="ver">✔ Verified traveller</span> <span class="stars">${'★'.repeat(r[1])}</span><br><small>${r[2]} · ${r[4]}</small><p style="margin-top:4px">${r[3]}</p></div>`).join('')||'No reviews for this rating yet.'}</div></div>`;
+}
+function pkgPanel(){
+ const b=info[cur[0]][2],P=(m)=>Math.round(b*m/100)*100-1,
+ k=[["3N/4D Kedarnath",1,["Dehradun pickup and drop","Hotels and camps","Breakfast and dinner","Registered guide"]],["4N/5D Kedarnath + Badrinath",1.4,["Everything in 3N/4D","Badrinath darshan","Private cab","Trek pony assistance"]],["Kedarnath Heli Package",2.6,["Round-trip helicopter","VIP darshan help","2 nights hotel","24x7 trip manager"]]];
+ return `<div class="pk">${k.map(x=>`<div class="box" style="margin:0"><h3>${x[0]}</h3><small>Starting from</small><div class="price">₹${P(x[1]).toLocaleString('en-IN')} <small style="font-size:12px;font-weight:400">/ Person</small></div><ul>${x[2].map(i=>`<li>${i}</li>`).join('')}</ul><a class="btn g w" data-form="enquiry" data-pkg="${x[0]}" href="#">Enquire Now</a></div>`).join('')}</div>`;
+}
+go('home');
+</script>
+
+<script>
+const LS={get(k,d){try{const v=JSON.parse(localStorage.getItem('tt_'+k));return v==null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem('tt_'+k,JSON.stringify(v))}catch(e){}}};
+const esc=x=>String(x==null?'':x).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let DB=null,RV=[],QA=[],SV=LS.get('saved',[]),ME=LS.get('me',null),curD='kedarnath',mode='dest',bq='';
+let DEST=dests.map(d=>({id:d[0].toLowerCase().replace(/ /g,'-'),name:d[0],n:d[1],rating:d[2],region:'India',desc:'Verified travel companies for '+d[0]+'.',best:'-',diff:'-',dur:'-',budget:'-',c1:d[3].split(',')[0],c2:d[3].split(',')[1]}));
+const on=v=>$('#v-'+v).classList.contains('on');
+const destCard=d=>`<a class="d" data-go="dest" data-id="${esc(d.id)}" href="#" style="--g:linear-gradient(160deg,${esc(d.c1)},${esc(d.c2)})"><b>${esc(d.name)}</b><span>${d.n} Companies</span><span><em>★</em> ${d.rating} Avg Rating</span><u>Explore →</u></a>`;
+const coCard=c=>`<div class="c"><div class="top"><div class="av">${esc(c[1][0])}</div><div><b>${esc(c[1])}</b><br>Trust Score</div></div><div class="score">${c[2]}<small>/100</small> <span class="stars">${'★'.repeat(Math.round(c[3]))}</span> <small>(${c[3]})</small></div><div class="meta"><div>Destinations<b>${c[4]}</b></div><div>Verified Since<b>${esc(c[5])}</b></div></div><div class="acts"><a class="btn g" data-go="company" data-id="${c[0]}" href="#">View Details</a><a class="btn o2" data-cmp="${c[0]}" href="#">Compare</a></div></div>`;
+const rowHtml=(c,i)=>{const f=info[c[0]];return `<div class="row"><div class="av">${esc(c[1][0])}</div><div>${i==0?'<span class="pill">Best Overall</span><br>':''}<h3>${esc(c[1])}<span class="ver">✔ Verified</span></h3>📍 ${esc(f[0])} &nbsp; 👤 ${f[1]}+ Years Experience<br>${f[4].map(t=>`<span class="tag">${esc(t)}</span>`).join('')}</div><div>Trust Score<div class="score">🛡 ${c[2]}<small>/100</small><span class="exc">Excellent</span></div><span class="stars">★★★★★</span><br>(${c[3]}/5 from ${f[3].toLocaleString()} reviews)</div><div>3N/4D Package<div class="price">₹${f[2].toLocaleString('en-IN')}</div>Per Person<a class="btn g w" data-go="company" data-id="${c[0]}" href="#">View Full Report</a><a class="btn wo w" data-cmp="${c[0]}" href="#">Compare</a></div></div>`};
+const rcHtml=(r,n)=>`<div class="rc"><b>${esc(r.n)}</b> <span class="stars">${'★'.repeat(r.r||0)}</span><br><small>${esc(n)}${n?' · ':''}${esc(r.d||'')} ${esc(r.trip?'· '+r.trip:'')}</small><p style="margin-top:4px">${esc(r.t)}</p></div>`;
+function renderHome(){$('#destGrid').innerHTML=DEST.map(destCard).join('');$('#coGrid').innerHTML=cos.map(coCard).join('')}
+function renderDest(){const d=DEST.find(x=>x.id==curD)||DEST[0];$('#dName').textContent=d.name;$('#dTitle').textContent=d.name;$('#dLoc').textContent='📍 '+d.region;$('#dDesc').textContent=d.desc;
+ $('#dChips').innerHTML=[['📅 Best Time',d.best],['📶 Difficulty',d.diff],['🕒 Ideal Duration',d.dur],['💰 Budget',d.budget]].map(x=>`<span class="chip">${esc(x[0])}: ${esc(x[1])}</span>`).join('');
+ $('#dGl').innerHTML=`<div><b>${d.n}</b>Verified Companies</div><div><b>${d.rating}/5</b>Avg. Rating</div><div><b>${cos[0]?cos[0][2]:'-'}/100</b>Best Trust Score</div><div><b>${cos.length}</b>Featured Companies</div>`;renderList()}
+function renderList(){const o=[...document.querySelectorAll('#fb input:checked')].map(i=>rng[i.dataset.i]);let l=cos.filter(c=>{const p=info[c[0]][2];return !o.length||o.some(r=>p>=r[1]&&p<r[2])});l.sort($('#sort').value=='p'?(a,b)=>info[a[0]][2]-info[b[0]][2]:(a,b)=>b[2]-a[2]);$('#cnt').textContent=l.length+' Verified Companies Found';$('#list').innerHTML=l.map(rowHtml).join('')||'<div class="box">No companies match these filters.</div>'}
+function renderBrowse(){$('#bq').value=bq;document.querySelectorAll('#bm .chipb').forEach(b=>b.classList.toggle('on',b.dataset.mode==mode));const q=bq.toLowerCase();
+ $('#bl').innerHTML=mode=='dest'?'<div class="dest">'+(DEST.filter(d=>(d.name+d.region).toLowerCase().includes(q)).map(destCard).join('')||'No destinations found.')+'</div>':(cos.filter(c=>(c[1]+info[c[0]][0]).toLowerCase().includes(q)).map(rowHtml).join('')||'No companies found.')}
+function renderRev(){const L=[...RV].sort((a,b)=>b.ts-a.ts);$('#rvs').textContent=L.length?`${L.length} reviews · average ${(L.reduce((t,r)=>t+r.r,0)/L.length).toFixed(1)}/5`:'No reviews yet.';$('#rvl').innerHTML=L.map(r=>{const c=cos.find(x=>x[0]==r.c);return rcHtml(r,c?c[1]:'')}).join('')}
+function revPanel(){const L=RV.filter(r=>r.c==cur[0]).sort((a,b)=>b.ts-a.ts),l=L.filter(r=>!rvf||r.r==rvf),avg=L.length?(L.reduce((t,r)=>t+r.r,0)/L.length).toFixed(1):cur[3];
+ return `<div class="rv"><div class="box"><h3>Ratings</h3><div class="score">${avg}<small>/5</small></div><span class="stars">★★★★★</span><br><small>${L.length} reviews on this page · ${info[cur[0]][3].toLocaleString()} verified in total</small><div style="margin-top:12px">${[5,4,3,2,1].map(n=>{const p=L.length?Math.round(100*L.filter(r=>r.r==n).length/L.length):0;return `<div class="bar">${n}★<i><u style="width:${p}%"></u></i>${p}%</div>`}).join('')}</div></div>
+ <div class="box"><div class="lh"><h3 style="margin:0">Traveller Reviews</h3><span>${[0,5,4,3].map(n=>`<button class="chipb ${rvf==n?'on':''}" data-rf="${n}">${n?n+'★':'All'}</button>`).join('')}<a class="btn g" data-form="review" href="#">Write a review</a></span></div>${l.map(r=>rcHtml(r,'')).join('')||'No reviews yet. Be the first to review.'}</div></div>`}
+const gp=(k,f)=>Object.defineProperty(other,k,{get:f,enumerable:true,configurable:true});
+gp('Destinations',()=>`${cur[1]} operates in ${cur[4]}+ destinations, including:<div style="margin-top:10px">${DEST.map(d=>`<a class="chipb" data-go="dest" data-id="${esc(d.id)}" href="#">${esc(d.name)}</a>`).join('')}</div>`);
+gp('Photos',()=>'<div class="dest">'+DEST.slice(0,6).map(d=>`<div class="d" style="--g:linear-gradient(160deg,${esc(d.c1)},${esc(d.c2)})"><b>${esc(d.name)}</b></div>`).join('')+'</div>');
+gp('Documents',()=>['GST Certificate','Company Registration','Tourism License','Insurance Policy'].map(d=>`<div class="kv">📄 ${d}<span class="ver">✔ Verified</span></div>`).join(''));
+gp('Policies',()=>'<div class="kv">Cancellation<b>Free up to 15 days before departure</b></div><div class="kv">Refunds<b>Within 7 working days</b></div><div class="kv">Payment<b>25% to book, balance before departure</b></div>');
+gp('Q&A',()=>`<a class="btn g" data-form="ask" href="#">Ask a question</a>${QA.filter(q=>q.c==cur[0]).sort((a,b)=>b.ts-a.ts).map(q=>`<div class="rc"><b>${esc(q.n)}</b><p>${esc(q.q)}</p>${q.a?`<p style="margin-top:6px;padding-left:10px;border-left:2px solid var(--green2)"><b>Answer:</b> ${esc(q.a)}</p>`:''}</div>`).join('')||'<p style="margin-top:10px">No questions yet.</p>'}`);
+const _rc=renderCompany;renderCompany=function(){saved=SV.includes(cur[0]);_rc()};
+function go(v,id,sc){if(v=='dest'&&id)curD=id;
+ document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id=='v-'+v));
+ if(v=='company'){cur=cos.find(c=>c[0]==id)||cur;tab=0;renderCompany()}
+ if(v=='dest')renderDest();if(v=='compare')renderCmp();if(v=='browse')renderBrowse();if(v=='reviews')renderRev();
+ document.querySelectorAll('[data-nav]').forEach(a=>a.classList.toggle('on',a.dataset.nav==(sc||v)));
+ sc?$('#'+sc).scrollIntoView():scrollTo(0,0)}
+const refresh=()=>{if(on('company'))renderCompany();if(on('reviews'))renderRev();if(on('browse'))renderBrowse()};
+async function save(col,d){if(!DB){toast('Cannot reach the server. Check your connection and try again.');return false}try{await DB.collection(col).add(Object.assign({},d,{ts:Date.now()}));return true}catch(e){toast(e.message||'Could not save. Try again.');return false}}
+const F={
+ enquiry:{t:()=>'Enquire · '+cur[1],col:'enquiries',ok:'Enquiry sent. The company will contact you soon.',x:()=>({company:cur[1],ck:cur[0]}),f:[['name','Your name','text',1],['phone','Phone / WhatsApp','tel',1],['date','Travel date','date'],['pax','Travellers','number'],['msg','Message','textarea']]},
+ callback:{t:()=>'Request a call back',col:'callbacks',ok:'Call back requested.',f:[['name','Your name','text',1],['phone','Phone','tel',1],['slot','Best time','select',0,['Morning','Afternoon','Evening']]]},
+ apply:{t:()=>'Become a verified company',col:'applications',ok:'Application received. Our team will contact you.',f:[['company','Company name','text',1],['contact','Contact person','text',1],['email','Email','email',1],['phone','Phone','tel',1],['city','City','text'],['years','Years in business','number']]},
+ review:{t:()=>'Write a review',col:'reviews',ok:'Thanks! Your review will appear once our team checks it.',x:()=>({d:new Date().toLocaleString('en',{month:'short',year:'numeric'})}),f:[['c','Company','select',1,cos.map(c=>c[0]+'|'+c[1])],['n','Your name','text',1],['r','Rating','select',1,['5','4','3','2','1']],['trip','Trip taken','text'],['t','Your experience','textarea',1]]},
+ ask:{t:()=>'Ask '+cur[1],col:'questions',ok:'Question posted.',x:()=>({c:cur[0]}),f:[['n','Your name','text',1],['q','Your question','textarea',1]]},
+ login:{t:()=>'Login / Join',f:[['name','Your name','text',1],['email','Email','email',1]]}};
+const fieldHtml=f=>`<label class="fl">${f[1]}${f[3]?' *':''}${f[2]=='textarea'?`<textarea id="f_${f[0]}" rows="3"></textarea>`:f[2]=='select'?`<select id="f_${f[0]}">${f[4].map(o=>{const a=o.split('|');return `<option value="${a[0]}" ${a[0]==cur[0]&&f[0]=='c'?'selected':''}>${a[1]||a[0]}</option>`}).join('')}</select>`:`<input id="f_${f[0]}" type="${f[2]}">`}</label>`;
+function modal(h){$('#modal').innerHTML='<div class="mb"><button class="x" id="mx" aria-label="Close">✕</button>'+h+'</div>';$('#modal').classList.add('on');$('#mx').onclick=closeM}
+function closeM(){$('#modal').classList.remove('on')}
+$('#modal').addEventListener('click',e=>{if(e.target.id=='modal')closeM()});document.addEventListener('keydown',e=>{if(e.key=='Escape')closeM()});
+function paintMe(){$('#loginBtn').textContent=ME?'Hi, '+ME.name.split(' ')[0]:'Login'}
+function openForm(k,ctx){const c=F[k];
+ if(k=='login'&&ME){modal(`<h3>Signed in</h3><p style="font-size:13px;margin-bottom:12px">${esc(ME.name)} · ${esc(ME.email)}<br>Saved companies: ${SV.length}</p><button class="btn g" id="mo">Sign out</button>`);$('#mo').onclick=()=>{ME=null;LS.set('me',null);paintMe();closeM()};return}
+ modal(`<h3>${esc(c.t())}</h3>`+c.f.map(fieldHtml).join('')+'<div id="ferr" style="color:#c0392b;font-size:12px;margin-bottom:6px"></div><button class="btn g w" id="fsub">Submit</button>');
+ $('#fsub').onclick=async()=>{const d={};for(const f of c.f){const v=$('#f_'+f[0]).value.trim();if(f[3]&&!v){$('#ferr').textContent=f[1]+' is required';return}if(f[2]=='email'&&v&&!v.includes('@')){$('#ferr').textContent='Enter a valid email';return}d[f[0]]=v}
+  ['r','pax','years'].forEach(n=>{if(d[n])d[n]=+d[n]});Object.assign(d,c.x?c.x():{},ctx||{});$('#fsub').disabled=true;
+  if(k=='login'){ME={name:d.name,email:d.email};LS.set('me',ME);paintMe();save('members',ME);toast('Welcome, '+d.name);closeM();return}
+  if(await save(c.col,d)){toast(c.ok);closeM()}else $('#fsub').disabled=false}}
+function search(){const q=$('#q').value.trim().toLowerCase();if(!q){toast('Type a destination first');return}const m=DEST.filter(d=>d.name.toLowerCase().includes(q));if(m.length==1)go('dest',m[0].id);else{bq=q;mode='dest';go('browse')}}
+$('#q').addEventListener('keydown',e=>{if(e.key=='Enter')search()});$('#bq').addEventListener('input',e=>{bq=e.target.value;renderBrowse()});
+document.addEventListener('click',e=>{const m=e.target.closest('[data-mode]');if(m){mode=m.dataset.mode;if(!m.dataset.go){bq=$('#bq').value;renderBrowse()}}
+ if(e.target.closest('#save')){e.preventDefault();e.stopPropagation();const i=SV.indexOf(cur[0]);i>-1?SV.splice(i,1):SV.push(cur[0]);LS.set('saved',SV);renderCompany();toast(i>-1?'Removed from saved':'Company saved')}},true);
+document.addEventListener('click',e=>{const f=e.target.closest('[data-form]'),w=e.target.closest('[data-wa]'),s=e.target.closest('[data-search]');
+ if(f){e.preventDefault();openForm(f.dataset.form,f.dataset.pkg?{pkg:f.dataset.pkg}:{})}
+ else if(w){e.preventDefault();window.open('https://wa.me/919999999999?text='+encodeURIComponent('Hi Trustify Trips, I need help choosing a travel company.'),'_blank','noopener')}
+ else if(s){e.preventDefault();search()}});
+paintMe();renderHome();
+(async()=>{try{DB=await claude.use('db')}catch(e){}
+ if(!DB)return;
+ try{const cs=await DB.collection('companies').get();if(!cs.empty){cos.length=0;cs.docs.map(d=>d.data()).sort((a,b)=>b.score-a.score).forEach(c=>{cos.push([c.k,c.name,c.score,c.rating,c.dests,c.since]);info[c.k]=[c.city,c.exp,c.price,c.reviews,c.tags]})}
+  const ds=await DB.collection('destinations').get();if(!ds.empty)DEST=ds.docs.map(d=>d.data()).sort((a,b)=>b.n-a.n);
+  renderHome();
+  DB.collection('reviews').onSnapshot(sn=>{RV=sn.docs.map(d=>d.data());refresh()});
+  DB.collection('questions').onSnapshot(sn=>{QA=sn.docs.map(d=>d.data());refresh()})}catch(e){console.error(e)}})();
+</script>
+<script>
+(function(){const n=document.getElementById('nav'),b=document.getElementById('burger');
+function set(o){n.classList.toggle('open',o);b.setAttribute('aria-expanded',o);b.textContent=o?'✕':'☰';b.setAttribute('aria-label',o?'Close menu':'Open menu')}
+b.addEventListener('click',e=>{e.stopPropagation();set(!n.classList.contains('open'))});
+document.addEventListener('click',e=>{if(!n.classList.contains('open'))return;if(!n.contains(e.target)||e.target.closest('nav ul a'))set(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')set(false)});
+addEventListener('resize',()=>{if(innerWidth>820)set(false)});})();
+</script>
+</body>
+</html>
