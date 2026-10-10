@@ -1,12 +1,12 @@
-const Review = require('./review.model');
-const Company = require('../company/company.model');
-const crudController = require('../shared/crud.controller');
-const { PUBLIC_EXCLUDE } = require('../shared/schema.helpers');
-const env = require('../../config/env');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const ApiError = require('../../utils/ApiError');
-const pick = require('../../utils/pick');
+import Review from './review.model.js';
+import Company from '../company/company.model.js';
+import crudController from '../shared/crud.controller.js';
+import { PUBLIC_EXCLUDE } from '../shared/schema.helpers.js';
+import env from '../../config/env.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = ['c', 'n', 'r', 'trip', 't', 'd', 'status'];
 /** What a traveller may send. `status` is deliberately absent. */
@@ -48,7 +48,7 @@ const submit = asyncHandler(async (req, res) => {
   );
 });
 
-module.exports = {
+export default {
   ...crudController(Review, EDITABLE_FIELDS, { one: 'Review', many: 'Reviews' }),
   listApproved,
   submit,

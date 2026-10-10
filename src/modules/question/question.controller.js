@@ -1,9 +1,9 @@
-const Question = require('./question.model');
-const crudController = require('../shared/crud.controller');
-const { PUBLIC_EXCLUDE } = require('../shared/schema.helpers');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const pick = require('../../utils/pick');
+import Question from './question.model.js';
+import crudController from '../shared/crud.controller.js';
+import { PUBLIC_EXCLUDE } from '../shared/schema.helpers.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = ['c', 'n', 'q', 'a', 'status'];
 /** A traveller may ask, but never answer or hide. */
@@ -31,7 +31,7 @@ const submit = asyncHandler(async (req, res) => {
   ApiResponse.created(res, { _id: question._id, status: question.status }, 'Question posted successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Question, EDITABLE_FIELDS, { one: 'Question', many: 'Questions' }),
   listVisible,
   submit,

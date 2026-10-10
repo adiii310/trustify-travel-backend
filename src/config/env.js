@@ -1,6 +1,6 @@
 // Every environment variable is read here once, so nothing else in the codebase
 // touches process.env directly.
-require('dotenv').config();
+import 'dotenv/config';
 
 const list = (v) => String(v || '').split(',').map((s) => s.trim()).filter(Boolean);
 
@@ -21,12 +21,28 @@ const env = {
   CORS_ORIGINS: origins(process.env.CORS_ORIGINS),
   REVIEW_AUTO_APPROVE: process.env.REVIEW_AUTO_APPROVE === 'true',
 
+  // Image hosting for destination cover art. Optional: with these unset the
+  // upload endpoint answers 503 and every other route is unaffected, because a
+  // cover image is itself optional.
+  CLOUDINARY_CLOUD_NAME: process.env.CLOUDINARY_CLOUD_NAME || '',
+  CLOUDINARY_API_KEY: process.env.CLOUDINARY_API_KEY || '',
+  CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET || '',
+  CLOUDINARY_FOLDER: process.env.CLOUDINARY_FOLDER || 'trustify/destinations',
+
   ADMIN_NAME: process.env.ADMIN_NAME || 'Site Admin',
   ADMIN_EMAIL: process.env.ADMIN_EMAIL,
   ADMIN_PASSWORD: process.env.ADMIN_PASSWORD,
 };
 
 env.isProduction = env.NODE_ENV === 'production';
+
+/**
+ * Whether image uploads can work. All three credentials are needed; one or two
+ * of them is a misconfiguration, not a partial capability.
+ */
+env.hasCloudinary = Boolean(
+  env.CLOUDINARY_CLOUD_NAME && env.CLOUDINARY_API_KEY && env.CLOUDINARY_API_SECRET,
+);
 
 /** Fail fast on boot rather than on the first request. */
 env.assertRequired = () => {
@@ -37,4 +53,4 @@ env.assertRequired = () => {
   }
 };
 
-module.exports = env;
+export default env;

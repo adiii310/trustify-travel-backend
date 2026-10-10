@@ -1,9 +1,9 @@
-const Member = require('./member.model');
-const crudController = require('../shared/crud.controller');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const ApiError = require('../../utils/ApiError');
-const pick = require('../../utils/pick');
+import Member from './member.model.js';
+import crudController from '../shared/crud.controller.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = ['name', 'email'];
 
@@ -29,7 +29,7 @@ const signIn = asyncHandler(async (req, res) => {
   );
 });
 
-module.exports = {
+export default {
   ...crudController(Member, EDITABLE_FIELDS, { one: 'Member', many: 'Members' }),
   signIn,
   EDITABLE_FIELDS,

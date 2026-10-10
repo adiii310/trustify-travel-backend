@@ -1,12 +1,13 @@
-const path = require('path');
-const express = require('express');
-const helmet = require('helmet');
-const cors = require('cors');
-const morgan = require('morgan');
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import express from 'express';
+import helmet from 'helmet';
+import cors from 'cors';
+import morgan from 'morgan';
 
-const env = require('./config/env');
-const apiRoutes = require('./routes');
-const { notFound, errorHandler } = require('./middlewares/error.middleware');
+import env from './config/env.js';
+import apiRoutes from './routes/index.js';
+import { notFound, errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
 app.set('trust proxy', 1);
@@ -21,7 +22,9 @@ app.use(helmet({
       'script-src-attr': ["'unsafe-inline'"],
       'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
       'font-src': ["'self'", 'https://fonts.gstatic.com', 'data:'],
-      'img-src': ["'self'", 'data:'],
+      // Destination cover images are uploaded to Cloudinary and served from its
+      // CDN, so the portals need it allowed alongside self-hosted assets.
+      'img-src': ["'self'", 'data:', 'https://res.cloudinary.com'],
       'connect-src': ["'self'"],
     },
   },
@@ -37,7 +40,9 @@ app.use('/api', apiRoutes);
 app.use('/api', notFound); // anything under /api that matched no route
 
 // --- static pages ----------------------------------------------------------
-const pub = path.join(__dirname, '..', 'public');
+// ESM has no __dirname; derive it from this module's own URL.
+const here = path.dirname(fileURLToPath(import.meta.url));
+const pub = path.join(here, '..', 'public');
 
 // API reference for integrators, at /docs (/api-docs is an alias)
 app.get(['/docs', '/api-docs'], (req, res) => res.sendFile(path.join(pub, 'docs', 'index.html')));
@@ -48,4 +53,4 @@ app.get('*', (req, res) => res.sendFile(path.join(pub, 'index.html')));
 
 app.use(errorHandler);
 
-module.exports = app;
+export default app;

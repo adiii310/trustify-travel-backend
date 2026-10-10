@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField } from '../shared/schema.helpers.js';
 
 // A company applying to become verified; moves through 8 verification stages (0-7)
 const applicationSchema = new Schema({
@@ -22,4 +22,4 @@ const Application = model('Application', applicationSchema);
 /** The last verification stage — an application must reach this to be published. */
 Application.FINAL_STAGE = 7;
 
-module.exports = Application;
+export default Application;

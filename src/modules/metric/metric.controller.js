@@ -1,8 +1,8 @@
-const Metric = require('./metric.model');
-const crudController = require('../shared/crud.controller');
-const { PUBLIC_EXCLUDE } = require('../shared/schema.helpers');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
+import Metric from './metric.model.js';
+import crudController from '../shared/crud.controller.js';
+import { PUBLIC_EXCLUDE } from '../shared/schema.helpers.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
 
 const EDITABLE_FIELDS = ['icon', 'value', 'label', 'order', 'status'];
 
@@ -21,7 +21,7 @@ const listPublished = asyncHandler(async (req, res) => {
   ApiResponse.ok(res, metrics, 'Metrics fetched successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Metric, EDITABLE_FIELDS, { one: 'Metric', many: 'Metrics' }),
   listPublished,
   EDITABLE_FIELDS,

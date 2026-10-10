@@ -1,13 +1,13 @@
-const Company = require('./company.model');
-const crudController = require('../shared/crud.controller');
-const { PUBLIC_EXCLUDE } = require('../shared/schema.helpers');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
+import Company from './company.model.js';
+import crudController from '../shared/crud.controller.js';
+import { PUBLIC_EXCLUDE } from '../shared/schema.helpers.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
 
 /** Fields an admin may set on create or update. Everything else is ignored. */
 const EDITABLE_FIELDS = [
-  'k', 'name', 'score', 'rating', 'dests', 'since', 'city', 'exp', 'price', 'reviews', 'tags',
-  'featured', 'featuredRank', 'status',
+  'k', 'name', 'score', 'rating', 'dests', 'places', 'since', 'city', 'exp', 'price', 'reviews',
+  'tags', 'about', 'breakdown', 'docs', 'policies', 'photos', 'featured', 'featuredRank', 'status',
 ];
 
 /** GET /api/companies — published only, highest trust score first. */
@@ -20,7 +20,7 @@ const listPublished = asyncHandler(async (req, res) => {
   ApiResponse.ok(res, companies, 'Companies fetched successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Company, EDITABLE_FIELDS, { one: 'Company', many: 'Companies' }),
   listPublished,
   EDITABLE_FIELDS,

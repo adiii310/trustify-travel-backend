@@ -1,12 +1,12 @@
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const ApiError = require('../../utils/ApiError');
-const pick = require('../../utils/pick');
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
+import pick from '../../utils/pick.js';
 
 // Fields the admin search box (?q=) looks through, where the collection has them.
 // Only string paths qualify — a regex cannot be cast to a Number, so including
 // one (destinations have a numeric `n`) would fail the whole query with a 400.
-const SEARCH_FIELDS = ['name', 'company', 'n', 'email', 'phone', 'city', 'label'];
+const SEARCH_FIELDS = ['name', 'company', 'n', 'email', 'phone', 'city', 'label', 'title', 'key', 'ref'];
 const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const isSearchable = (Model, field) => Model.schema.path(field)?.instance === 'String';
 
@@ -22,7 +22,7 @@ const MAX_LIMIT = 1000;
  * `editableFields` is the whitelist for create and update — anything else in the
  * body is dropped, so clients can never set _id, ts or createdAt by hand.
  */
-module.exports = function crudController(Model, editableFields, labels = {}) {
+export default function crudController(Model, editableFields, labels = {}) {
   const one = labels.one || Model.modelName;
   const many = labels.many || `${Model.modelName} records`;
 

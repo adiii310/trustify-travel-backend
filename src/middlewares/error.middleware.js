@@ -1,5 +1,5 @@
-const env = require('../config/env');
-const ApiError = require('../utils/ApiError');
+import env from '../config/env.js';
+import ApiError from '../utils/ApiError.js';
 
 /** Anything under /api that matched no route. */
 function notFound(req, res, next) {
@@ -27,6 +27,13 @@ function toApiError(err) {
   if (err.type === 'entity.too.large') {
     return ApiError.badRequest('Request body is too large. The limit is 100 KB.');
   }
+  // Multer rejects an oversized or unexpected upload before the handler runs.
+  if (err.name === 'MulterError') {
+    const message = err.code === 'LIMIT_FILE_SIZE'
+      ? 'That image is too large. The limit is 5 MB.'
+      : 'That upload could not be read. Send one image in a field named "image".';
+    return ApiError.badRequest(message, [{ field: err.field || 'image', message }]);
+  }
 
   // Unexpected: log it in full, tell the client nothing about the internals.
   return ApiError.internal();
@@ -35,12 +42,17 @@ function toApiError(err) {
 // eslint-disable-next-line no-unused-vars
 function errorHandler(err, req, res, next) {
   const apiError = toApiError(err);
-  if (apiError.statusCode >= 500) console.error(err);
+
+  // A deliberately thrown ApiError is an outcome a handler chose, even at 5xx —
+  // `503 image uploads are not configured` is not a crash. Only genuinely
+  // unexpected failures are logged in full and carry a stack back to the client.
+  const unexpected = !(err instanceof ApiError) && apiError.statusCode >= 500;
+  if (unexpected) console.error(err);
 
   const body = apiError.toJSON();
-  if (!env.isProduction && apiError.statusCode >= 500) body.stack = err.stack;
+  if (!env.isProduction && unexpected) body.stack = err.stack;
 
   res.status(apiError.statusCode).json(body);
 }
 
-module.exports = { notFound, errorHandler };
+export { notFound, errorHandler };

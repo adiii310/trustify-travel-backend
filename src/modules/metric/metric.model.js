@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField, visibilityField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField, visibilityField } from '../shared/schema.helpers.js';
 
 // A headline figure in the customer homepage hero strip.
 //
@@ -15,4 +15,4 @@ const metricSchema = new Schema({
   ts: tsField,
 }, baseOptions);
 
-module.exports = model('Metric', metricSchema);
+export default model('Metric', metricSchema);

@@ -1,6 +1,6 @@
-const { Router } = require('express');
-const controller = require('./metric.controller');
-const { requireAdmin } = require('../../middlewares/auth.middleware');
+import { Router } from 'express';
+import controller from './metric.controller.js';
+import { requireAdmin } from '../../middlewares/auth.middleware.js';
 
 /** Mounted at /api/metrics. Read-only — there is no public write. */
 const publicRouter = Router();
@@ -15,4 +15,4 @@ adminRouter.get('/:id', controller.getById);
 adminRouter.patch('/:id', controller.update);
 adminRouter.delete('/:id', controller.remove);
 
-module.exports = { publicRouter, adminRouter };
+export { publicRouter, adminRouter };

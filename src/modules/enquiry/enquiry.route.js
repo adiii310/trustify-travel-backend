@@ -1,7 +1,7 @@
-const { Router } = require('express');
-const controller = require('./enquiry.controller');
-const { requireAdmin } = require('../../middlewares/auth.middleware');
-const { formLimiter } = require('../../middlewares/rateLimit.middleware');
+import { Router } from 'express';
+import controller from './enquiry.controller.js';
+import { requireAdmin } from '../../middlewares/auth.middleware.js';
+import { formLimiter } from '../../middlewares/rateLimit.middleware.js';
 
 /** Mounted at /api/enquiries */
 const publicRouter = Router();
@@ -16,4 +16,4 @@ adminRouter.get('/:id', controller.getById);
 adminRouter.patch('/:id', controller.update);
 adminRouter.delete('/:id', controller.remove);
 
-module.exports = { publicRouter, adminRouter };
+export { publicRouter, adminRouter };

@@ -1,9 +1,11 @@
 // Creates or resets the admin account from ADMIN_* values in .env
-const bcrypt = require('bcryptjs');
-const mongoose = require('mongoose');
-const env = require('./config/env');
-const connectDB = require('./config/db');
-const Admin = require('./modules/admin/admin.model');
+import { argv } from 'node:process';
+import { fileURLToPath } from 'node:url';
+import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose';
+import env from './config/env.js';
+import connectDB from './config/db.js';
+import Admin from './modules/admin/admin.model.js';
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -23,11 +25,15 @@ async function ensureAdmin() {
   console.log(`Admin ready: ${ADMIN_EMAIL}`);
 }
 
-if (require.main === module) {
+// ESM has no `require.main`; comparing the resolved entry path is the equivalent,
+// so `npm run create-admin` connects but `import`ing this from seed.js does not.
+const isEntryPoint = argv[1] && fileURLToPath(import.meta.url) === argv[1];
+
+if (isEntryPoint) {
   connectDB(env.MONGODB_URI)
     .then(ensureAdmin)
     .catch((e) => { console.error(e.message); process.exitCode = 1; })
     .finally(() => mongoose.disconnect());
 }
 
-module.exports = ensureAdmin;
+export default ensureAdmin;

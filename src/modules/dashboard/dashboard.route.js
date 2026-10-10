@@ -1,9 +1,9 @@
-const { Router } = require('express');
-const controller = require('./dashboard.controller');
-const { requireAdmin } = require('../../middlewares/auth.middleware');
+import { Router } from 'express';
+import controller from './dashboard.controller.js';
+import { requireAdmin } from '../../middlewares/auth.middleware.js';
 
 /** Mounted at /api/admin */
 const router = Router();
 router.get('/stats', requireAdmin, controller.stats);
 
-module.exports = router;
+export default router;

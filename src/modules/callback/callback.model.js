@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField } from '../shared/schema.helpers.js';
 
 // A request to be called back
 const callbackSchema = new Schema({
@@ -11,4 +11,4 @@ const callbackSchema = new Schema({
   ts: tsField,
 }, baseOptions);
 
-module.exports = model('Callback', callbackSchema);
+export default model('Callback', callbackSchema);

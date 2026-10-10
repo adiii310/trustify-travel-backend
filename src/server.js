@@ -1,8 +1,8 @@
 // Boot sequence only: check the environment, connect to Mongo, start listening.
 // The Express app itself lives in src/app.js.
-const env = require('./config/env');
-const connectDB = require('./config/db');
-const app = require('./app');
+import env from './config/env.js';
+import connectDB from './config/db.js';
+import app from './app.js';
 
 env.assertRequired();
 
@@ -22,4 +22,4 @@ connectDB(env.MONGODB_URI)
     process.exit(1);
   });
 
-module.exports = app;
+export default app;
