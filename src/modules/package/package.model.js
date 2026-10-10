@@ -38,6 +38,12 @@ const packageSchema = new Schema({
   inclusions: [{ type: String, trim: true, maxlength: 200 }],
   exclusions: [{ type: String, trim: true, maxlength: 200 }],
   itinerary: [itineraryDaySchema],
+  // The same itinerary as a downloadable PDF, uploaded through
+  // POST /api/admin/uploads/document. Independent of `itinerary` above: a
+  // package may have the day-by-day list, the document, both or neither, and
+  // the customer page shows whichever it was given.
+  pdf: { type: String, default: '', trim: true, maxlength: 500 }, // hosted URL
+  pdfId: { type: String, default: '', trim: true, maxlength: 300 }, // Cloudinary public_id
   // Cover photo, uploaded through POST /api/admin/uploads/image. Empty means
   // the card falls back to the destination's own cover, then to its gradient.
   img: { type: String, default: '', trim: true, maxlength: 500 },

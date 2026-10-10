@@ -324,7 +324,7 @@ const GROUPS = [
   },
   {
     m:'GET', p:'/api/packages', sum:'List packages for a destination or company',
-    desc:'Published packages, <b>cheapest first</b>, capped at 200. This is the destination-to-package relationship made readable: a package belongs to exactly one company and one destination, both references are validated when it is written, and a package cannot be published while either fails to resolve — so every row here points at a real company and a real destination. One destination holds many packages, from one company or several, and the same company may list several durations for the same destination; they are independent records. <b><code>avail</code> is not <code>status</code></b>: <code>status</code> decides whether the package is listed, <code>avail</code> whether it can be booked today, so a <code>soldout</code> package is still returned and still comparable.',
+    desc:'Published packages, <b>cheapest first</b>, capped at 200. This is the destination-to-package relationship made readable: a package belongs to exactly one company and one destination, both references are validated when it is written, and a package cannot be published while either fails to resolve — so every row here points at a real company and a real destination. One destination holds many packages, from one company or several, and the same company may list several durations for the same destination; they are independent records. <b><code>avail</code> is not <code>status</code></b>: <code>status</code> decides whether the package is listed, <code>avail</code> whether it can be booked today, so a <code>soldout</code> package is still returned and still comparable. <b>The itinerary comes in two independent forms</b> — <code>itinerary</code>, the structured day-by-day list, and <code>pdf</code>, the same plan as a downloadable document. A package may carry either, both or neither; render each only if it has something in it, because neither is derived from the other. To offer a download rather than an inline view, insert Cloudinary\'s <code>fl_attachment</code> flag after <code>/upload/</code> — a plain <code>&lt;a download&gt;</code> is ignored by browsers on a cross-origin link.',
     q:[O('d','string','Destination slug. The main filter — a destination page passes this.'),
        O('c','string','Company short code (<code>k</code>).'),
        O('minPrice','number','Per person, INR. Inclusive.'),
@@ -345,6 +345,7 @@ const GROUPS = [
     <b>"inclusions"</b>: ["Dehradun pickup and drop", "Twin-sharing tents"],
     <b>"exclusions"</b>: ["Personal trekking gear"],
     <b>"itinerary"</b>: [ { <b>"day"</b>: 1, <b>"title"</b>: "Dehradun to Sankri", <b>"detail"</b>: "…" } ],
+    <b>"pdf"</b>: "https://res.cloudinary.com/…/kedarkantha-itinerary.pdf",  <i>// optional</i>
     <b>"img"</b>: "https://res.cloudinary.com/…/kedarkantha.jpg",
     <b>"avail"</b>: "open",
     <b>"status"</b>: "published",
@@ -791,11 +792,29 @@ const GROUPS = [
       {c:503,msg:'Image uploads are not configured on this server.',note:'the CLOUDINARY_* variables are unset — the feature is off, not broken'}]
   },
   {
+    m:'POST', p:'/api/admin/uploads/document', sum:'Upload an itinerary PDF', auth:true,
+    desc:'Uploads one <b>PDF</b> — a package itinerary — and returns where it landed. The second <code>multipart/form-data</code> endpoint in the API. Like the image endpoint it stores nothing in the database: write <code>url</code> and <code>publicId</code> onto a record (<code>pdf</code> / <code>pdfId</code> on a package) with a separate PATCH. The file part <b>must</b> be named <code>file</code>, and only <code>application/pdf</code> is accepted, up to 10&nbsp;MB — a traveller downloads this onto a phone, and a .docx or .pages file is one they may not be able to open. <b>Stored as a Cloudinary <code>raw</code> resource, not an image:</b> Cloudinary would otherwise infer <code>image</code> for a PDF, and accounts block PDF <i>delivery</i> under that type by default, so the file uploads fine and then 401s when a traveller opens it. The practical consequence is that deleting one needs <code>resourceType: "raw"</code>. <code>downloadUrl</code> is the same file with the <code>fl_attachment</code> flag, built server-side so neither frontend has to know that path format — a plain <code>&lt;a download&gt;</code> does not work on a cross-origin link.',
+    curlExtra:'-F "file=@kedarkantha-itinerary.pdf"',
+    noTry:true,
+    noTryNote:'Not available in the Try it runner — it sends JSON, and this endpoint needs <code>multipart/form-data</code>. Use the cURL above, or the Packages screen in the admin panel.',
+    res:[{c:201,msg:'Itinerary uploaded successfully',s:`{
+  <b>"url"</b>: "https://res.cloudinary.com/…/trustify/destinations/abc123.pdf",
+  <b>"downloadUrl"</b>: "https://res.cloudinary.com/…/upload/fl_attachment/…/abc123.pdf",
+  <b>"publicId"</b>: "trustify/destinations/abc123",
+  <b>"bytes"</b>: 184320,
+  <b>"name"</b>: "kedarkantha-itinerary.pdf"
+}`},
+      {c:400,msg:'Itineraries must be a PDF.',errors:`[ { <b>"field"</b>: "file", <b>"message"</b>: "Only PDF files are accepted." } ]`},
+      {c:503,msg:'File uploads are not configured on this server.',note:'the CLOUDINARY_* variables are unset'}]
+  },
+  {
     m:'POST', p:'/api/admin/uploads/destroy', sum:'Remove an uploaded image', auth:true,
     desc:'Deletes a previously uploaded file. A POST with a JSON body rather than a DELETE with the id in the path, because a <code>publicId</code> carries its folder and therefore contains slashes. Deleting an id that is already gone is <b>not</b> an error — <code>result</code> comes back as <code>"not found"</code> and the status is still 200, because the caller\'s goal ("this file is not hosted any more") is satisfied either way. This never touches the database: clear <code>img</code> / <code>imgId</code> on the record yourself, and in that order — orphaning a file only costs storage, while clearing the record first and then failing the delete loses the id you needed.',
     body:[O('publicId','string','The <code>publicId</code> returned by the upload endpoint.')],
+    body:[O('publicId','string','The <code>publicId</code> returned by the upload endpoint.'),
+          ['resourceType','string','no','<code>image</code> (default) or <code>raw</code>. <b>Must match how the file was stored</b> — itinerary PDFs are raw, and deleting one as an image reports "not found" with a 200 and leaves the file hosted.']],
     sample:{publicId:'trustify/destinations/ab12cd'},
-    res:[{c:200,msg:'Image removed successfully',s:`{ <b>"publicId"</b>: "trustify/destinations/ab12cd", <b>"result"</b>: "ok" }`},
+    res:[{c:200,msg:'File removed successfully',s:`{ <b>"publicId"</b>: "trustify/destinations/ab12cd", <b>"resourceType"</b>: "image", <b>"result"</b>: "ok" }`},
       {c:400,msg:'Supply the publicId of the image to remove.',errors:`[ { <b>"field"</b>: "publicId", <b>"message"</b>: "Required." } ]`},
       {c:503,msg:'Image uploads are not configured on this server.'}]
   }]
@@ -855,7 +874,9 @@ const SCHEMAS = [
     ['days','number','no','0–60.'],
     ['inclusions','string[]','no','Each entry max 200.'],
     ['exclusions','string[]','no','Each entry max 200.'],
-    ['itinerary','object[]','no','<code>{ day, title, detail }</code>; day 1–60, title required.'],
+    ['itinerary','object[]','no','The structured day-by-day list: <code>{ day, title, detail }</code>; day 1–60, title required. <b>Independent of <code>pdf</code></b> — a package may have either, both or neither.'],
+    ['pdf','string','no','Itinerary PDF URL, max 500. Set it from the result of POST /api/admin/uploads/document.'],
+    ['pdfId','string','no','That upload\'s <code>publicId</code>, max 300. Needed to delete the old file when the itinerary is replaced — and it must be deleted with <code>resourceType: "raw"</code>.'],
     ['img','string','no','Cover photo URL. Falls back to the destination\'s own cover on the site.'],
     ['imgId','string','no','That upload\'s <code>publicId</code>.'],
     ['avail','enum','no','<code>open</code> | <code>limited</code> | <code>soldout</code>. Default <code>open</code>. Whether it can be <b>booked</b> — not whether it is listed.'],

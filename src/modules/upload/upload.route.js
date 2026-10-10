@@ -11,6 +11,7 @@ import { requireAdmin } from '../../middlewares/auth.middleware.js';
 const adminRouter = Router();
 adminRouter.use(requireAdmin);
 adminRouter.post('/image', controller.imageUpload, controller.uploadImage);
+adminRouter.post('/document', controller.documentUpload, controller.uploadDocument);
 adminRouter.post('/destroy', controller.destroyImage);
 
 export { adminRouter };

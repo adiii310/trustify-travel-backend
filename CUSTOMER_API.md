@@ -336,6 +336,7 @@ Every filter is optional and they combine.
     "itinerary": [
       { "day": 1, "title": "Dehradun to Sankri", "detail": "Early departure…" }
     ],
+    "pdf": "https://res.cloudinary.com/…/kedarkantha-itinerary.pdf",  // optional
     "img": "https://res.cloudinary.com/…/kedarkantha.jpg",  // optional
     "avail": "open",
     "status": "published",
@@ -346,7 +347,25 @@ Every filter is optional and they combine.
 
 - **One destination holds many packages, from one company or several.** The same company may list several durations for the same destination; they are independent records and editing one never touches another.
 - **`avail` is not `status`.** `status` decides whether the package is listed at all; `avail` decides whether it can be booked today. A `soldout` package is still published, still returned here and still comparable — only the booking action changes.
-- **`desc`, `img` and `avail` may be absent** on records saved before those fields existed. Read `avail` as `?? "open"`: the package is published and states no limit.
+- **`desc`, `img`, `pdf` and `avail` may be absent** on records saved before those fields existed. Read `avail` as `?? "open"`: the package is published and states no limit.
+
+**The itinerary comes in two independent forms**, and a package may carry either, both or neither:
+
+| Field | What it is |
+| --- | --- |
+| `itinerary` | The structured day-by-day list — `{ day, title, detail }`, in order. `day` is 1-based. |
+| `pdf` | The same plan as a downloadable document, uploaded by an admin. |
+
+Render each only if it has something in it. Neither is derived from the other, and an empty `itinerary` with a `pdf` present is a perfectly normal package — some operators publish only the document.
+
+**To offer a download rather than an inline view**, insert Cloudinary's `fl_attachment` flag after `/upload/`:
+
+```js
+const view = pkg.pdf;
+const download = pkg.pdf.replace('/upload/', '/upload/fl_attachment/');
+```
+
+A plain `<a download>` will not work here: browsers ignore that attribute on a cross-origin link, so the flag is the only thing that actually makes "Download" download. Leave a URL that is not a Cloudinary delivery URL untouched — an admin may paste any `https` address.
 - **An unknown `avail` is a `400`, not an empty list** — a silently empty result reads as "this destination has nothing", which is a different and wrong answer.
 - Results are capped at **200** with no paging. A destination with more than that is beyond what this endpoint can express.
 
@@ -880,6 +899,7 @@ Reads are unlimited, but 30 seconds is plenty — this content changes at human 
 - **A destination's cover image is optional.** `img` is `""` or missing for most records; always keep the `c1`/`c2` gradient behind it.
 - **A package's `c` and `d` always resolve.** Both are validated when the package is written and a package cannot be published while either is unresolvable, so `GET /packages?d=<slug>` is a complete and correct answer to "what can I book here" — no client-side filtering is needed to make it safe.
 - **`avail` is about booking, `status` is about listing.** Never hide a `soldout` package: travellers compare it and enquire about the next departure.
+- **A package's two itinerary fields are independent.** `itinerary` (the day-by-day list) and `pdf` (the downloadable document) are set separately by an admin; show whichever arrived rather than treating one as a fallback for the other.
 - **Packages are capped at 200** per response, like reviews and questions. Narrow with the filters rather than paging — there is no paging.
 - **No personalisation exists.** `/api/members` stores a name and email; nothing reads it back.
 

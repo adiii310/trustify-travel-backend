@@ -22,6 +22,14 @@ export const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'ima
 export const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const RECOMMENDED_RATIO = '3:2 landscape, at least 1200x800';
 
+/**
+ * Itinerary documents. PDF only, and deliberately so: a traveller downloads
+ * this onto a phone, and a .docx or .pages file is one they may not be able to
+ * open. A PDF renders everywhere.
+ */
+export const ALLOWED_DOCUMENT_TYPES = ['application/pdf'];
+export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024; // 10 MB
+
 /** Longest edge Cloudinary stores. Bigger than any slot the site has for it. */
 const MAX_STORED_EDGE = 1600;
 
@@ -44,24 +52,53 @@ export const imageUpload = multer({
   },
 }).single('image');
 
+/**
+ * Multipart parsing for the single `file` part of an itinerary document.
+ *
+ * A separate multer instance rather than a looser filter on the image one: the
+ * two have different size limits and different accepted types, and widening
+ * the image filter would let a PDF be saved as a destination cover.
+ */
+export const documentUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_DOCUMENT_BYTES, files: 1 },
+  fileFilter: (req, file, cb) => {
+    if (ALLOWED_DOCUMENT_TYPES.includes(file.mimetype)) return cb(null, true);
+    cb(ApiError.badRequest('Itineraries must be a PDF.', [
+      { field: 'file', message: 'Only PDF files are accepted.' },
+    ]));
+  },
+}).single('file');
+
 /** Promise wrapper around Cloudinary's callback-style upload stream. */
-const uploadBuffer = (buffer) =>
+const uploadBuffer = (buffer, options) =>
   new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      {
-        folder: env.CLOUDINARY_FOLDER,
-        resource_type: 'image',
-        // Normalise on the way in: cap the stored size, let Cloudinary pick the
-        // best format and quality for each requesting browser.
-        transformation: [
-          { width: MAX_STORED_EDGE, height: MAX_STORED_EDGE, crop: 'limit' },
-          { quality: 'auto', fetch_format: 'auto' },
-        ],
-      },
+      { folder: env.CLOUDINARY_FOLDER, ...options },
       (error, result) => (error ? reject(error) : resolve(result)),
     );
     Readable.from(buffer).pipe(stream);
   });
+
+/** Options for an image: cap the stored size, let Cloudinary pick the format. */
+const IMAGE_OPTIONS = {
+  resource_type: 'image',
+  transformation: [
+    { width: MAX_STORED_EDGE, height: MAX_STORED_EDGE, crop: 'limit' },
+    { quality: 'auto', fetch_format: 'auto' },
+  ],
+};
+
+/**
+ * Options for a document.
+ *
+ * `resource_type: 'raw'` rather than `'image'`, which is what Cloudinary would
+ * otherwise infer for a PDF. Two reasons: a raw file is delivered byte-for-byte,
+ * and — the one that actually bites — Cloudinary accounts block PDF *delivery*
+ * under `resource_type: 'image'` by default, so an itinerary uploaded that way
+ * uploads fine and then 401s when a traveller opens it.
+ */
+const DOCUMENT_OPTIONS = { resource_type: 'raw' };
 
 /**
  * POST /api/admin/uploads/image — multipart/form-data, one `image` part.
@@ -80,7 +117,7 @@ const uploadImage = asyncHandler(async (req, res) => {
     ]);
   }
 
-  const result = await uploadBuffer(req.file.buffer);
+  const result = await uploadBuffer(req.file.buffer, IMAGE_OPTIONS);
 
   ApiResponse.created(
     res,
@@ -95,6 +132,53 @@ const uploadImage = asyncHandler(async (req, res) => {
     'Image uploaded successfully',
   );
 });
+
+/**
+ * POST /api/admin/uploads/document — multipart/form-data, one `file` part.
+ *
+ * Stores nothing itself: the caller writes the returned `url` and `publicId`
+ * onto a record (`pdf` / `pdfId` on a package). The response also carries
+ * `downloadUrl`, the same file with Cloudinary's `fl_attachment` flag, so the
+ * frontends never have to build that path themselves.
+ */
+const uploadDocument = asyncHandler(async (req, res) => {
+  if (!env.hasCloudinary) {
+    throw new ApiError(503, 'File uploads are not configured on this server. Set the CLOUDINARY_* variables in .env.');
+  }
+  if (!req.file) {
+    throw ApiError.badRequest('Choose a PDF to upload.', [
+      { field: 'file', message: 'No file received.' },
+    ]);
+  }
+
+  const result = await uploadBuffer(req.file.buffer, DOCUMENT_OPTIONS);
+
+  ApiResponse.created(
+    res,
+    {
+      url: result.secure_url,
+      downloadUrl: attachmentUrl(result.secure_url),
+      publicId: result.public_id,
+      bytes: result.bytes,
+      /** The name the admin's file had, for display. */
+      name: req.file.originalname || '',
+    },
+    'Itinerary uploaded successfully',
+  );
+});
+
+/**
+ * Turn a Cloudinary delivery URL into one that downloads rather than displays.
+ *
+ * `fl_attachment` goes in the transformation segment, right after `/upload/`.
+ * A URL that is not a Cloudinary delivery URL — an admin can paste any https
+ * address — is returned untouched rather than mangled.
+ */
+export function attachmentUrl(url) {
+  if (!url.includes('/upload/')) return url;
+  if (url.includes('/upload/fl_attachment')) return url;
+  return url.replace('/upload/', '/upload/fl_attachment/');
+}
 
 /**
  * POST /api/admin/uploads/destroy — remove a previously uploaded image.
@@ -116,8 +200,16 @@ const destroyImage = asyncHandler(async (req, res) => {
     ]);
   }
 
-  const result = await cloudinary.uploader.destroy(publicId, { resource_type: 'image' });
-  ApiResponse.ok(res, { publicId, result: result.result }, 'Image removed successfully');
+  // Raw files and images live in separate Cloudinary namespaces, so deleting
+  // one with the wrong type silently reports "not found" and leaves the file.
+  const resourceType = req.body?.resourceType === 'raw' ? 'raw' : 'image';
+
+  const result = await cloudinary.uploader.destroy(publicId, { resource_type: resourceType });
+  ApiResponse.ok(
+    res,
+    { publicId, resourceType, result: result.result },
+    'File removed successfully',
+  );
 });
 
-export default { imageUpload, uploadImage, destroyImage };
+export default { imageUpload, uploadImage, documentUpload, uploadDocument, destroyImage };

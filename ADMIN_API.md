@@ -501,17 +501,73 @@ The aspect ratio is a recommendation, not a check — the server stores whatever
 
 **Treat 503 as a disabled feature, not an outage.** Cover images are optional throughout the stack, so a backend without Cloudinary credentials is a working backend — hide or disable the upload control rather than failing the whole form.
 
+### `POST /api/admin/uploads/document`
+
+Uploads one **PDF** — an itinerary — and returns where it landed. The second `multipart/form-data` endpoint in the API; everything else except `/uploads/image` is JSON.
+
+Like the image endpoint it stores nothing in the database: write `url` and `publicId` onto a record (`pdf` / `pdfId` on a package) with a separate `PATCH`.
+
+```js
+const body = new FormData();
+body.append('file', file);                  // the field MUST be named "file"
+
+const res = await fetch(`${BASE}/admin/uploads/document`, {
+  method: 'POST',
+  headers: { Authorization: `Bearer ${token}` },   // no Content-Type — the browser sets the boundary
+  body,
+});
+const { data } = await res.json();
+
+await api.update('packages', id, { pdf: data.url, pdfId: data.publicId });
+```
+
+```jsonc
+// 201 — "Itinerary uploaded successfully"
+{
+  "url": "https://res.cloudinary.com/…/trustify/destinations/abc123.pdf",
+  "downloadUrl": "https://res.cloudinary.com/…/upload/fl_attachment/…/abc123.pdf",
+  "publicId": "trustify/destinations/abc123",
+  "bytes": 184320,
+  "name": "kedarkantha-itinerary.pdf"
+}
+```
+
+| Rule | Value |
+| --- | --- |
+| Field name | `file` — one file, anything else is a 400 |
+| Accepted types | `application/pdf` **only** |
+| Max size | 10 MB |
+| Stored as | A Cloudinary **raw** resource |
+
+**PDF only is deliberate.** A traveller downloads this onto a phone, and a `.docx` or `.pages` file is one they may not be able to open.
+
+**Stored as `raw`, not `image`.** Cloudinary would otherwise infer `image` for a PDF, and accounts block PDF *delivery* under that resource type by default — the file uploads fine and then 401s when a traveller opens it. The practical consequence for you: **deleting one needs `resourceType: "raw"`** (see below), or the delete silently reports "not found" and leaves the file hosted.
+
+`downloadUrl` is the same file with Cloudinary's `fl_attachment` flag, built server-side so neither frontend has to know that path format. A plain `<a download>` does not work on a cross-origin link.
+
+| Status | `message` |
+| --- | --- |
+| 201 | `Itinerary uploaded successfully` |
+| 400 | `Itineraries must be a PDF.` / `That upload could not be read…` |
+| 401 | No or expired token |
+| 503 | `File uploads are not configured on this server.` — the `CLOUDINARY_*` variables are unset |
+
 ### `POST /api/admin/uploads/destroy`
 
 Removes a previously uploaded file. A `POST` with a JSON body rather than a `DELETE` with the id in the path, because a `publicId` contains the folder and therefore slashes.
 
 ```jsonc
-// request
+// request — resourceType defaults to "image"
 { "publicId": "trustify/destinations/ab12cd" }
 
-// 200 — "Image removed successfully"
-{ "publicId": "trustify/destinations/ab12cd", "result": "ok" }
+// an itinerary PDF was stored as a raw resource, so say so
+{ "publicId": "trustify/destinations/abc123", "resourceType": "raw" }
+
+// 200 — "File removed successfully"
+{ "publicId": "trustify/destinations/ab12cd", "resourceType": "image", "result": "ok" }
 ```
+
+**`resourceType` must match how the file was stored.** Images and raw files live in separate Cloudinary namespaces; deleting a PDF as an image returns `"not found"` with a 200 and leaves the file hosted.
 
 Deleting an id that is already gone is **not** an error — `result` comes back as `"not found"` and the status is still 200, because the caller's goal ("this file is not hosted any more") is satisfied either way.
 
@@ -604,6 +660,8 @@ The relational core of the catalogue. A package belongs to exactly **one** compa
 | `nights` / `days` | number | | 0–60 each. |
 | `inclusions` / `exclusions` | string[] | | Each entry max 200. |
 | `itinerary` | object[] | | `{ day, title, detail }`; `day` 1–60, `title` required. |
+| `pdf` | string | | Itinerary PDF URL, max 500. From `POST /api/admin/uploads/document`. |
+| `pdfId` | string | | That upload's `publicId`, max 300. Needed to delete the old file when replacing it. |
 | `img` / `imgId` | string | | Cover photo URL and its upload `publicId`. |
 | `avail` | enum | | `open` \| `limited` \| `soldout`. Default `open`. |
 | `status` | enum | | `published` \| `hidden`. Default `published`. |
@@ -630,6 +688,10 @@ That third rule is deliberately narrower than the second: a legacy row with a br
 Pick both from `GET /api/admin/companies` and `GET /api/admin/destinations` rather than typing them — there is no reason for an admin to know a short code by heart, and a typo is a rejected save.
 
 **`avail` is not `status`.** `status` decides whether the package is listed; `avail` decides whether it can be booked today. A sold-out package stays published so travellers can still compare it and enquire about the next departure.
+
+**The itinerary has two independent forms.** `itinerary` is the structured day-by-day list the package page renders; `pdf` is the same plan as a downloadable document. A package may carry either, both or neither — neither is derived from the other, and some operators publish only the document. Clearing one means sending `""` / `[]` for it; the other is untouched.
+
+Uploading the file is a separate call to `POST /api/admin/uploads/document` (below), which returns `{ url, publicId }`; write those into `pdf` / `pdfId` yourself, exactly as a destination cover works. Keep `pdfId` in step or a replaced itinerary orphans the file it abandoned.
 
 **Legacy rows.** Referential validation arrived with this feature, so rows written before it may carry a broken reference. `npm run backfill:packages` audits them, and `-- --fix` sets any *published* broken row to `hidden`. It deletes nothing and changes nothing else — see the migration note at the end of this document.
 
@@ -869,6 +931,8 @@ try {
 - **Confirming a booking requires a recorded payment** (or `not_required`). This is deliberate and is the rule the booking workflow exists to protect.
 - **`notes` is internal and `update` is not.** The customer endpoints return `update` and have never returned `notes` — the customer projection is built by naming what goes in, not by deleting what must stay out.
 - **Customer tokens cannot reach admin routes.** Each token carries an audience claim; a customer token on `/api/admin/*` is a `403` before any lookup.
+- **A package's `itinerary` and `pdf` are independent.** One is the structured day list, the other a downloadable document; setting one never changes the other, and a package may have either, both or neither.
+- **Itinerary PDFs are Cloudinary *raw* resources.** Delete them with `resourceType: "raw"` — the default `"image"` reports success and leaves the file behind.
 - **Image uploads are a separate multipart call.** The collection endpoints are JSON-only: `POST /api/admin/uploads/image` returns `{ url, publicId }` and you `PATCH` them onto the record as `img` / `imgId` yourself. A `503` there means the server has no Cloudinary credentials — the feature is off, not broken, because cover images are optional everywhere.
 - **No `OPTIONS` handling needed on your side**; the backend answers preflights once the origin is allowlisted.
 - **Deletes are permanent.** Confirm in the UI before calling `DELETE`.

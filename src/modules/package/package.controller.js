@@ -10,7 +10,7 @@ import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = [
   'c', 'd', 'title', 'desc', 'nights', 'days', 'price',
-  'inclusions', 'exclusions', 'itinerary', 'img', 'imgId', 'avail', 'status',
+  'inclusions', 'exclusions', 'itinerary', 'pdf', 'pdfId', 'img', 'imgId', 'avail', 'status',
 ];
 
 /** Public lists are capped like reviews and questions — see api.md §4. */
