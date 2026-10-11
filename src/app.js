@@ -30,7 +30,40 @@ app.use(helmet({
   },
 }));
 
-if (env.CORS_ORIGINS.length) app.use('/api', cors({ origin: env.CORS_ORIGINS }));
+/**
+ * CORS for the two frontends.
+ *
+ * `maxAge` is the important one in development. Every admin request carries an
+ * `Authorization` header, which makes it a non-simple request, so the browser
+ * preflights each one. Without a max-age Chrome caches a preflight for about
+ * five seconds, and the admin dashboard fires fourteen parallel loads on
+ * mount — so a cold load means fourteen preflights racing fourteen requests,
+ * and a single one that does not land shows up as a CORS failure even though
+ * the configuration is correct. Ten minutes collapses that to one.
+ *
+ * A rejected origin is logged rather than silently dropped: the browser
+ * reports it to the user as "blocked by CORS policy" and the server otherwise
+ * says nothing at all, which is the hardest version of this to diagnose.
+ */
+if (env.CORS_ORIGINS.length) {
+  const allowed = new Set(env.CORS_ORIGINS);
+
+  app.use('/api', cors({
+    maxAge: 600,
+    origin(origin, callback) {
+      // No Origin header: curl, a server-side call, or a same-origin request.
+      if (!origin || allowed.has(origin)) return callback(null, true);
+
+      console.warn(
+        `CORS: refused ${origin} — add it to CORS_ORIGINS in .env (currently: ${env.CORS_ORIGINS.join(', ')})`,
+      );
+      // `false`, not an error: the response simply carries no CORS header, and
+      // the browser blocks it. Throwing here would turn a policy decision into
+      // a 500 and bury the real reason.
+      return callback(null, false);
+    },
+  }));
+}
 
 app.use(express.json({ limit: '100kb' }));
 app.use(morgan(env.isProduction ? 'combined' : 'dev'));
