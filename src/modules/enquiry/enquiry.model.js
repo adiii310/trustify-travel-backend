@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField } from '../shared/schema.helpers.js';
 
 // A trip enquiry lead from the customer portal
 const enquirySchema = new Schema({
@@ -16,4 +16,4 @@ const enquirySchema = new Schema({
   ts: tsField,
 }, baseOptions);
 
-module.exports = model('Enquiry', enquirySchema);
+export default model('Enquiry', enquirySchema);

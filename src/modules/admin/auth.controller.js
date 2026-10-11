@@ -1,9 +1,9 @@
-const bcrypt = require('bcryptjs');
-const Admin = require('./admin.model');
-const { signToken } = require('../../middlewares/auth.middleware');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const ApiError = require('../../utils/ApiError');
+import bcrypt from 'bcryptjs';
+import Admin from './admin.model.js';
+import { signToken } from '../../middlewares/auth.middleware.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
 
 /**
  * POST /api/auth/login
@@ -27,4 +27,4 @@ const me = asyncHandler(async (req, res) => {
   ApiResponse.ok(res, { admin: req.admin.toPublicJSON() }, 'Admin fetched successfully');
 });
 
-module.exports = { login, me };
+export default { login, me };

@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions } from '../shared/schema.helpers.js';
 
 // An admin account. Created with `npm run create-admin`, never over the API.
 const adminSchema = new Schema({
@@ -14,4 +14,4 @@ adminSchema.methods.toPublicJSON = function toPublicJSON() {
   return { _id: this._id, name: this.name, email: this.email, role: this.role };
 };
 
-module.exports = model('Admin', adminSchema);
+export default model('Admin', adminSchema);

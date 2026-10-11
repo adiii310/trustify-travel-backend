@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField } from '../shared/schema.helpers.js';
 
 // A traveller review of a company. Moderated unless REVIEW_AUTO_APPROVE is on.
 const reviewSchema = new Schema({
@@ -13,4 +13,4 @@ const reviewSchema = new Schema({
   ts: tsField,
 }, baseOptions);
 
-module.exports = model('Review', reviewSchema);
+export default model('Review', reviewSchema);

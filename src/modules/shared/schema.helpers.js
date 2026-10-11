@@ -13,4 +13,4 @@ const visibilityField = { type: String, enum: ['published', 'hidden'], default: 
 /** Public reads never expose Mongoose's own timestamps. */
 const PUBLIC_EXCLUDE = '-createdAt -updatedAt';
 
-module.exports = { baseOptions, tsField, visibilityField, PUBLIC_EXCLUDE };
+export { baseOptions, tsField, visibilityField, PUBLIC_EXCLUDE };

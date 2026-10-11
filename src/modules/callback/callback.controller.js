@@ -1,8 +1,8 @@
-const Callback = require('./callback.model');
-const crudController = require('../shared/crud.controller');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const pick = require('../../utils/pick');
+import Callback from './callback.model.js';
+import crudController from '../shared/crud.controller.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = ['name', 'phone', 'slot', 'status', 'notes'];
 const SUBMIT_FIELDS = ['name', 'phone', 'slot'];
@@ -13,7 +13,7 @@ const submit = asyncHandler(async (req, res) => {
   ApiResponse.created(res, { _id: callback._id, status: callback.status }, 'Callback requested successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Callback, EDITABLE_FIELDS, { one: 'Callback', many: 'Callbacks' }),
   submit,
   EDITABLE_FIELDS,

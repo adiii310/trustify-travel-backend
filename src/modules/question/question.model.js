@@ -1,5 +1,5 @@
-const { Schema, model } = require('mongoose');
-const { baseOptions, tsField } = require('../shared/schema.helpers');
+import { Schema, model } from 'mongoose';
+import { baseOptions, tsField } from '../shared/schema.helpers.js';
 
 // A public question about a company, and the admin's answer
 const questionSchema = new Schema({
@@ -11,4 +11,4 @@ const questionSchema = new Schema({
   ts: tsField,
 }, baseOptions);
 
-module.exports = model('Question', questionSchema);
+export default model('Question', questionSchema);

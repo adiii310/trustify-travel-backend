@@ -28,6 +28,8 @@ Quick MongoDB with Docker: `docker run -d -p 27017:27017 --name mongo mongo:7`
 
 ## Project structure
 
+`src/` is **ES modules** (`"type": "module"` in `package.json`) and runs straight from source — there is no build step and no transpiler. Relative imports therefore need their `.js` extension, and a directory import needs its `index.js` spelled out: `import M from './models/index.js'`, never `'./models'`. `__dirname` and `require.main` do not exist; `app.js` and `createAdmin.js` derive both from `import.meta.url`.
+
 Each section of the app owns a folder under `src/modules/`, holding its model, controller and routes side by side. To change how reviews work, everything is in `src/modules/review/`.
 
 ```
@@ -37,6 +39,7 @@ src/
   config/
     env.js                       Every environment variable, read once
     db.js                        Mongo connection
+    cloudinary.js                Image hosting, configured only if CLOUDINARY_* is set
   utils/
     ApiResponse.js               The success envelope used by every endpoint
     ApiError.js                  The failure envelope, thrown from anywhere
@@ -57,6 +60,7 @@ src/
       company.route.js           publicRouter and adminRouter
     destination/  review/  question/  enquiry/  callback/  application/  member/
                                  ... same three files each
+    upload/                      Cloudinary image uploads (admin only, multipart)
     admin/                       admin.model.js, auth.controller.js, auth.route.js
     dashboard/                   /api/admin/stats
     health/                      /api/health
@@ -79,8 +83,8 @@ public/
 
 | Collection | Key fields | Status values |
 | --- | --- | --- |
-| companies | `k` (short code), name, score, rating, price, city, exp, tags | published, hidden |
-| destinations | slug, name, region, n, rating, best, budget, c1/c2 colours | published, hidden |
+| companies | `k` (short code), name, score, rating, price, city, exp, tags, `places` (destination slugs covered) | published, hidden |
+| destinations | slug, name, region, n, rating, best, budget, c1/c2 colours, `img` cover photo | published, hidden |
 | reviews | `c` (company code), n, r (1–5), trip, t | pending, approved, rejected |
 | questions | `c`, n, q, a (answer) | open, answered, hidden |
 | enquiries | name, phone, date, pax, company, pkg, notes | new, contacted, booked, closed |
@@ -123,6 +127,7 @@ Read the payload from `data`; branch on `success` or the HTTP status, never on t
 | GET | `/api/health` | Health check |
 | GET | `/api/companies` | Published companies, highest trust score first |
 | GET | `/api/destinations` | Published destinations |
+| GET | `/api/destinations/:slug` | One destination plus the companies covering it; 404 if hidden or unknown |
 | GET | `/api/reviews?c=H` | Approved reviews, optional company filter |
 | GET | `/api/questions?c=H` | Visible questions with answers |
 | POST | `/api/enquiries` | `{name, phone, date?, pax?, msg?, company?, ck?, pkg?}` |
@@ -147,8 +152,10 @@ POST routes accept only the listed fields and are rate limited to 20 per IP ever
 | PATCH | `/api/admin/:collection/:id` | Update (only editable fields) |
 | DELETE | `/api/admin/:collection/:id` | Delete |
 | POST | `/api/admin/applications/:id/publish` | `{k, score, price?, dests?, since?, tags?}` — turns an applicant at stage 7 into a live company |
+| POST | `/api/admin/uploads/image` | `multipart/form-data` with one `image` part → `{url, publicId, …}`. 503 when `CLOUDINARY_*` is unset |
+| POST | `/api/admin/uploads/destroy` | `{publicId}` — removes a hosted image |
 
-`:collection` is one of companies, destinations, reviews, questions, enquiries, callbacks, applications, members. Each has its own route file under `src/modules/`; they share handlers through `crudController`, so they behave identically.
+`:collection` is one of companies, destinations, reviews, questions, enquiries, callbacks, applications, members, metrics. Each has its own route file under `src/modules/`; they share handlers through `crudController`, so they behave identically. `/api/admin/uploads/*` is not a collection — it has no list, no ids and writes no record.
 
 Status codes: 400 validation, 401 auth, 404 missing, 409 duplicate, 429 rate limited.
 
@@ -158,3 +165,4 @@ Status codes: 400 validation, 401 auth, 404 missing, 409 duplicate, 429 rate lim
 - Change the admin password from the example value before going live.
 - If you host the portals on a different domain from the API, list that domain in `CORS_ORIGINS` and set `window.TT_API` in each HTML file to the full API URL (for example `https://api.trustifytrips.in/api`).
 - Replace the placeholder WhatsApp number `919999999999` in `public/index.html`.
+- Destination cover images need `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` and `CLOUDINARY_API_SECRET`. All three or none: with them unset the upload endpoint answers 503 and every other route is unaffected, because a cover photo is optional throughout the stack.

@@ -121,8 +121,14 @@ export const api = {
   health:       ()   => request('GET', '/health'),
   companies:    ()   => request('GET', '/companies'),
   destinations: ()   => request('GET', '/destinations'),
+  destination:  (slug) => request('GET', `/destinations/${encodeURIComponent(slug)}`),
+  packages:     (q = {}) => request('GET', '/packages?' + new URLSearchParams(q)),
+  package:      (id)  => request('GET', `/packages/${encodeURIComponent(id)}`),
+  content:      ()    => request('GET', '/content'),
+  settings:     ()    => request('GET', '/settings'),
   reviews:      (c)  => request('GET', c ? `/reviews?c=${encodeURIComponent(c)}` : '/reviews'),
   questions:    (c)  => request('GET', c ? `/questions?c=${encodeURIComponent(c)}` : '/questions'),
+  metrics:      ()   => request('GET', '/metrics'),
 
   // submissions
   enquiry:     (b) => request('POST', '/enquiries', b),
@@ -177,6 +183,14 @@ Every company with `status: "published"`, **sorted by `score` descending** (high
     "price": 10499,                         // 3N/4D price per person, INR
     "reviews": 2340,                        // verified review count
     "tags": ["Custom Itineraries", "24x7 Support", "Great Hotels"],
+    "places": ["kedarnath", "leh-ladakh", "kashmir"],  // destination slugs it runs trips to
+    "about": "A Dehradun based operator specialising in…",
+    "breakdown": [ { "label": "Itinerary Quality", "score": 92 } ],  // any length
+    "docs": ["GST Certificate", "Tourism License"],
+    "policies": [ { "label": "Cancellation", "value": "Free up to 15 days before" } ],
+    "photos": ["https://res.cloudinary.com/…/trip.jpg"],
+    "featured": false,                      // admin picked it for the homepage strip
+    "featuredRank": 0,                      // position within that strip, ascending
     "status": "published",
     "ts": 1791455437171                     // created, epoch ms
   }
@@ -184,6 +198,26 @@ Every company with `status: "published"`, **sorted by `score` descending** (high
 ```
 
 `price` and `reviews` are display figures stored on the company record — `reviews` is **not** a live count of the `reviews` collection.
+
+**`places` vs `dests`.** `dests` is a headline *number* an admin types in; `places` is the actual list of destination slugs the company sells trips to, and it is what `GET /api/destinations/:slug` filters on. Nothing keeps the two in step, so never derive one from the other — show `dests`, filter on `places`. Like `featured`, `places` **may be absent entirely** on a company saved before the field existed; read it as `company.places ?? []`.
+
+**Curating the homepage.** `featured` / `featuredRank` let an admin choose which companies fill the homepage's "Top Rated Companies" strip. The endpoint still returns **every** published company in score order, so filter client-side off the list you already have rather than asking for a second one:
+
+```js
+const featured = companies.filter((c) => c.featured)
+                          .sort((a, b) => a.featuredRank - b.featuredRank);
+// Nothing curated yet? Fall back to the score order the API already applied.
+const top = featured.length ? featured : companies.slice(0, 4);
+```
+
+Treat an empty featured set as "not configured", never as "show nothing" — a fresh install has no featured records.
+
+**Both fields may be absent entirely, not `false`/`0`.** Lists are read with Mongoose's `.lean()`, which does not apply schema defaults to already-stored documents, so any company saved before curation existed comes back with no `featured` key at all. The sample above shows them because it is a freshly created record. Read them defensively — `a.featuredRank - b.featuredRank` over untouched records is `NaN`, which silently scrambles the order:
+
+```js
+const rank = (c) => c.featuredRank ?? 0;
+featured.sort((a, b) => rank(a) - rank(b));
+```
 
 ### `GET /api/destinations`
 
@@ -203,11 +237,17 @@ Published destinations, **sorted by `n` descending** (most verified companies fi
     "desc": "Verified travel companies for Kedarnath.",
     "c1": "#8a6a52",                        // card gradient start
     "c2": "#2b4463",                        // card gradient end
+    "img": "https://res.cloudinary.com/…/kedarnath.jpg",  // optional cover photo
+    "highlights": ["Kedarnath Temple", "Vasuki Tal"],
+    "featured": false,                      // admin picked it for the homepage grid
+    "featuredRank": 0,                      // position within that grid, ascending
     "status": "published",
     "ts": 1791455437198
   }
 ]
 ```
+
+`featured` / `featuredRank` work exactly as they do on companies: they curate the homepage's "Popular Destinations" grid, the endpoint still returns everything published in `n` order, and an empty featured set means "not configured" — fall back to `slice(0, 8)`.
 
 **Optional fields may be absent entirely, not `null`.** `best`, `diff`, `dur` and `budget` have no defaults, so a destination that was never given them simply has no such key — the sample above is a real response with all four missing. Always read them defensively:
 
@@ -221,6 +261,157 @@ const season = dest.best ?? '—';
 | `diff` | Difficulty | `"Moderate"` |
 | `dur` | Typical duration | `"3N/4D"` |
 | `budget` | Typical budget range | `"₹10,000 - ₹15,000"` |
+
+**The cover photo is optional.** `img` is a hosted image URL an admin uploaded for the destination; `""` or a missing key both mean "no photo". Render it over the `c1`/`c2` gradient rather than instead of it, so a destination without one still looks finished and a slow or broken image never leaves an empty tile:
+
+```css
+background-image: url(<img>), linear-gradient(160deg, <c1>, <c2>);
+background-size: cover;
+```
+
+Images are stored at most 1600px on the longest edge and delivered in whatever format the browser accepts. They are authored as **3:2 landscape** — assume a wide crop, not a square or a portrait.
+
+### `GET /api/destinations/:slug`
+
+One published destination **plus the published companies that run trips to it**, newest-verified-first by trust score. This is the only public read that joins two collections; it exists because a destination page needs both halves before it can render anything.
+
+`:slug` is the destination's `slug` / `id` (`kedarnath`), not its `_id`, and is matched case-insensitively.
+
+```jsonc
+// 200 — "Destination fetched successfully"
+{
+  "_id": "6ac770cd8ea944a44e634fc4",
+  "slug": "kedarnath",
+  "id": "kedarnath",
+  "name": "Kedarnath",
+  "region": "India",
+  "n": 32,
+  "rating": 4.7,
+  "desc": "Verified travel companies for Kedarnath.",
+  "c1": "#8a6a52",
+  "c2": "#2b4463",
+  "img": "https://res.cloudinary.com/…/kedarnath.jpg",
+  "status": "published",
+  "ts": 1791455437198,
+  "companies": [                            // same shape as GET /api/companies
+    { "_id": "…", "k": "H", "name": "Holiday Heaven", "score": 96, "…": "…" }
+  ]
+}
+```
+
+Every optional field behaves exactly as it does in the list response above — `best`, `diff`, `dur`, `budget` and `img` may be absent.
+
+- **A hidden or unknown destination is a `404`**, with the usual failure envelope. Handle it; an admin can hide a destination while people still hold links to it.
+- **`companies` can legitimately be empty.** It is built by matching the slug against each published company's `places` array, and nothing requires a destination to have coverage. An empty array means "no verified company sells this yet", not an error.
+- **`n` is not `companies.length`.** `n` is the admin-entered headline figure shown on the destination card; `companies.length` is what the API actually found. Show whichever the page is about and do not reconcile them.
+
+### `GET /api/packages`
+
+Published packages, **cheapest first**, capped at 200. This is the destination-to-package relationship made readable: a package belongs to exactly one destination and one company, and both references are validated when it is written, so every row here resolves to a real `destination.slug` and a real `company.k`.
+
+Every filter is optional and they combine.
+
+| Query | Meaning |
+| --- | --- |
+| `d` | Destination slug. The main one — a destination page passes this. |
+| `c` | Company short code (`k`). |
+| `minPrice` / `maxPrice` | Per person, INR, both inclusive. |
+| `nights` | Exact number of nights. |
+| `avail` | `open` \| `limited` \| `soldout`. |
+
+```jsonc
+// 200 — "Packages fetched successfully"
+[
+  {
+    "_id": "6ac8caab2a8d0ce684259dd5",
+    "c": "H",                               // company short code — always resolves
+    "d": "kedarkantha",                     // destination slug — always resolves
+    "title": "3D/2N Kedarkantha Weekend Summit",
+    "desc": "Dehradun to Dehradun, two nights under canvas.",
+    "nights": 2,
+    "days": 3,
+    "price": 7499,                          // per person, INR. Drives the sort.
+    "inclusions": ["Dehradun pickup and drop", "Twin-sharing tents"],
+    "exclusions": ["Personal trekking gear", "Travel insurance"],
+    "itinerary": [
+      { "day": 1, "title": "Dehradun to Sankri", "detail": "Early departure…" }
+    ],
+    "pdf": "https://res.cloudinary.com/…/kedarkantha-itinerary.pdf",  // optional
+    "img": "https://res.cloudinary.com/…/kedarkantha.jpg",  // optional
+    "avail": "open",
+    "status": "published",
+    "ts": 1791455437171
+  }
+]
+```
+
+- **One destination holds many packages, from one company or several.** The same company may list several durations for the same destination; they are independent records and editing one never touches another.
+- **`avail` is not `status`.** `status` decides whether the package is listed at all; `avail` decides whether it can be booked today. A `soldout` package is still published, still returned here and still comparable — only the booking action changes.
+- **`desc`, `img`, `pdf` and `avail` may be absent** on records saved before those fields existed. Read `avail` as `?? "open"`: the package is published and states no limit.
+
+**The itinerary comes in two independent forms**, and a package may carry either, both or neither:
+
+| Field | What it is |
+| --- | --- |
+| `itinerary` | The structured day-by-day list — `{ day, title, detail }`, in order. `day` is 1-based. |
+| `pdf` | The same plan as a downloadable document, uploaded by an admin. |
+
+Render each only if it has something in it. Neither is derived from the other, and an empty `itinerary` with a `pdf` present is a perfectly normal package — some operators publish only the document.
+
+**To offer a download rather than an inline view**, insert Cloudinary's `fl_attachment` flag after `/upload/`:
+
+```js
+const view = pkg.pdf;
+const download = pkg.pdf.replace('/upload/', '/upload/fl_attachment/');
+```
+
+A plain `<a download>` will not work here: browsers ignore that attribute on a cross-origin link, so the flag is the only thing that actually makes "Download" download. Leave a URL that is not a Cloudinary delivery URL untouched — an admin may paste any `https` address.
+- **An unknown `avail` is a `400`, not an empty list** — a silently empty result reads as "this destination has nothing", which is a different and wrong answer.
+- Results are capped at **200** with no paging. A destination with more than that is beyond what this endpoint can express.
+
+### `GET /api/packages/:id`
+
+One published package, by its `_id`. The only public read keyed on an id: a shared link has to keep working and a package has no other stable handle.
+
+```jsonc
+// 200 — "Package fetched successfully"
+{ "_id": "…", "c": "H", "d": "kedarkantha", "…": "…" }
+```
+
+A hidden or unknown package is a **404**. Resolve `c` and `d` against `GET /api/companies` and `GET /api/destinations` — as everywhere else in this API, there is no server-side join.
+
+### `GET /api/content`
+
+Every published site-content list, **grouped**, each already in display order. One request rather than five: the homepage alone needs `badge` and `step`.
+
+```jsonc
+// 200 — "Content fetched successfully"
+{
+  "badge":     [ { "_id": "…", "group": "badge", "icon": "✔", "title": "Verified & Tested", "body": "", "order": 0, "status": "published", "ts": 1 } ],
+  "step":      [ { "…": "…" } ],   // icon + title + body — the verification steps
+  "resource":  [ { "…": "…" } ],   // title is the question, body the answer
+  "parameter": [ { "…": "…" } ],   // trust-parameter names, title only
+  "interest":  [ { "…": "…" } ]    // planner interest chips, title only
+}
+```
+
+`?group=badge` narrows it and returns the same object shape. **Every requested group is always present**, as an empty array when it has no rows, so no caller has to guard a missing key. An empty group means the section is unconfigured — hide it rather than substituting copy.
+
+### `GET /api/settings`
+
+Site-wide values as a flat map. The server fills in every declared key from its own defaults, so this is **always complete**.
+
+```jsonc
+// 200 — "Settings fetched successfully"
+{
+  "site.name": "Trustify Trips",
+  "site.tagline": "TRAVEL. VERIFIED.",
+  "site.whatsapp": "",
+  "site.whatsappMessage": "Hi Trustify Trips, I need help choosing a travel company."
+}
+```
+
+A key present with an empty string is an admin clearing it deliberately — render nothing, never substitute. `site.whatsapp` empty means every WhatsApp button should be hidden rather than linking to `wa.me/`.
 
 ### `GET /api/reviews`
 
@@ -281,6 +472,33 @@ Unanswered questions are public the moment they are posted. Render `a` only when
 A question an admin hides disappears from this endpoint entirely — treat a question vanishing between loads as normal, not an error.
 
 ---
+
+### `GET /api/metrics`
+
+The headline figures in the homepage hero strip, **published only, in `order` ascending**. Unpaged and uncapped; there are only ever a handful.
+
+```jsonc
+// 200 — "Metrics fetched successfully"
+[
+  {
+    "_id": "6ac88014dcf36ec45a795af8",
+    "icon": "🏢",                            // emoji, may be ""
+    "value": "450+",                         // display TEXT, not a number
+    "label": "Verified Companies",
+    "order": 0,                              // ascending; ties fall back to ts
+    "status": "published",
+    "ts": 1791524884557
+  }
+]
+```
+
+**`value` is a string and is admin-entered.** It is deliberately not a live count of anything: the site shows rounded marketing figures (`"450+"`, `"50,000+"`) that do not track the row counts in this database. Render it verbatim — do not parse it, format it, or try to reconcile it with `/api/companies.length`.
+
+The strip is fully admin-managed, so an admin can add, reorder, hide or remove entries. Render whatever arrives rather than assuming four, and **keep your own fallback copy** for an empty response:
+
+```js
+const metrics = (await api.metrics()).length ? await api.metrics() : DEFAULT_STATS;
+```
 
 ## 5. Submission endpoints
 
@@ -434,19 +652,166 @@ Treat it as a newsletter-style capture. If you need real traveller accounts, tha
 
 ---
 
-## 6. Common workflows
+## 6. Customer accounts and bookings
+
+**This is the only authenticated part of the customer API.** Everything in section 4 and 5 is open; everything here needs a customer bearer token.
+
+`POST /api/members` (section 5) is unchanged and still issues no token — it is identity capture for prefilling forms. Accounts are separate, and registering with an email that endpoint already captured **upgrades that record** rather than refusing: it is the same traveller, and they have never had a password.
+
+### Tokens
+
+```js
+const { token, member } = await api.register({ name, email, phone, password });
+// or
+const { token, member } = await api.login({ identifier, password });
+
+// Then, on the booking endpoints only:
+headers: { Authorization: `Bearer ${token}` }
+```
+
+Admin tokens and customer tokens are **not interchangeable**: each carries an audience claim, and presenting one where the other belongs is a `403` / `401` before any lookup happens. Persist the token however your app persists sessions; it expires on the backend's `JWT_EXPIRES_IN` (7 days by default), and a `401` on any of these endpoints means sign in again.
+
+### `POST /api/auth/customer/register`
+
+```jsonc
+// request — username is optional, everything else required
+{ "name": "Aarav Shah", "email": "aarav@example.com", "phone": "9876543210",
+  "username": "aarav", "password": "at least 8 chars" }
+
+// 201 — "Account created successfully"
+{ "token": "eyJ…", "member": { "_id": "…", "name": "Aarav Shah",
+  "email": "aarav@example.com", "username": "aarav", "phone": "9876543210", "ts": 1791455437171 } }
+```
+
+| Status | Meaning |
+| --- | --- |
+| 400 | Validation failed. **Every** problem is in `errors[]`, not just the first. |
+| 409 | The email, username or phone is already registered — `errors[0].field` says which. |
+
+Phone numbers are normalised to digits, so `+91 98765 43210` and `9876543210` are the same account. The password hash is never returned by any endpoint.
+
+### `POST /api/auth/customer/login`
+
+One field takes **an email, a username or a phone number**. Which one it is is inferred from its shape, because travellers type what they remember.
+
+```jsonc
+{ "identifier": "aarav@example.com", "password": "…" }   // or "aarav", or "9876543210"
+```
+
+Every failure is the same `401` with the same message — a wrong password, an unknown identifier and an account that has never set a password are indistinguishable, so this cannot be used to discover who has an account. Rate limited to **10 attempts per IP per 15 minutes**.
+
+### `GET /api/auth/customer/me` 🔒
+
+Returns `{ member }`. Call it on start-up to check a restored token is still good; a `401` means sign out.
+
+### `PATCH /api/auth/customer/me` 🔒
+
+Updates `name`, `phone` and `username`. **`email` is deliberately not updatable** — it is the key registration matches on and the handle every historical booking was made under.
+
+### `POST /api/auth/customer/password` 🔒
+
+```jsonc
+{ "currentPassword": "…", "newPassword": "at least 8 chars" }
+```
+
+Proves the current password (a wrong one is a `401`) and returns a fresh `{ token, member }`.
+
+### `POST /api/bookings` 🔒
+
+Requests a booking. **This is not a confirmation**: it creates a `pending` record, takes no payment and reserves nothing. The admin team reviews it and gets in touch.
+
+```jsonc
+// request
+{ "pkg": "6ac8caab2a8d0ce684259dd5", "pax": 2,
+  "startDate": "2027-01-15", "msg": "Two vegetarians, please.", "phone": "9876543210" }
+```
+
+- **The server prices the booking** from the package: `amount = package.price × pax`. An `amount`, `price` or `status` in the request body is ignored.
+- The package must be **published and not sold out**; anything else is a `400`.
+- `pax` is 1–50. `startDate` is `YYYY-MM-DD` or omitted.
+- The customer is taken from the **token**. There is no customer id to send, and therefore none to manipulate.
+- Rate limited with the other public forms: 20 per IP per 10 minutes.
+
+### `GET /api/bookings` 🔒 and `GET /api/bookings/:id` 🔒
+
+The signed-in traveller's own bookings, newest first, max 200. `?status=` filters. A booking belonging to someone else is a **404**, not a 403 — the API will not confirm that it exists.
+
+```jsonc
+// 200 — "Bookings fetched successfully"
+[
+  {
+    "_id": "6ac8dc106472e74037682a7a",
+    "ref": "TT-FN4R7B",                     // quotable, unique
+    "pkg": "6ac8caab…", "c": "H", "d": "kedarkantha",
+    "snap": {                               // as priced when booked, not today
+      "title": "3D/2N Kedarkantha Weekend Summit", "price": 7499,
+      "nights": 2, "days": 3,
+      "destName": "Kedarkantha", "companyName": "Holiday Heaven"
+    },
+    "startDate": "2027-01-15",
+    "pax": 2,
+    "msg": "Two vegetarians, please.",
+    "status": "pending",
+    "payStatus": "unpaid",
+    "amount": 14998,
+    "advance": 0,
+    "paid": 0,                              // verified by an admin, offline
+    "balance": 14998,
+    "update": "",                           // the team's note to the traveller
+    "ts": 1791455437171
+  }
+]
+```
+
+**This is a narrower projection than the admin API returns.** The booking's internal notes, its audit trail, its assignee and the individual payment records are *absent* — the server builds this shape by naming what goes in, so a field added later stays invisible here until someone deliberately lists it.
+
+| `status` | What it means to the traveller |
+| --- | --- |
+| `pending` | Request received, not yet reviewed |
+| `contacted` | The team has been in touch |
+| `awaiting_payment` | They know what to pay |
+| `confirmed` | Explicitly confirmed by the team |
+| `completed` | The trip has happened |
+| `cancelled` / `rejected` | Not going ahead |
+
+| `payStatus` | Meaning |
+| --- | --- |
+| `not_required` | Nothing to pay right now |
+| `unpaid` / `partially_paid` / `paid` | Derived from payments the team verified **offline** |
+| `refunded` | Refunded outside this application |
+
+**`status` and `payStatus` are independent.** A booking can be `confirmed` while only partly paid, and `awaiting_payment` is a workflow stage rather than a payment state.
+
+The snapshot is why booking history survives: a package that is re-priced, renamed or withdrawn does not change what a past booking says. Render `snap`, never the package's current fields.
+
+**There is no online payment anywhere in this API.** No card details are collected or stored, and no endpoint moves money. Payment is arranged directly with the team and recorded by an admin after they verify it.
+
+---
+
+## 7. Common workflows
 
 ### Load everything a homepage needs
 
 ```js
-const [companies, destinations, reviews] = await Promise.all([
+const [companies, destinations, reviews, metrics] = await Promise.all([
   api.companies(),
   api.destinations(),
   api.reviews(),           // latest approved reviews across all companies
+  api.metrics(),           // the admin-managed hero strip
 ]);
+
+// The homepage strips are curated by an admin, with the old ordering as fallback.
+const pick = (list, count) => {
+  const featured = list.filter((x) => x.featured)
+                       .sort((a, b) => a.featuredRank - b.featuredRank);
+  return featured.length ? featured : list.slice(0, count);
+};
+
+const topCompanies = pick(companies, 4);        // already score desc
+const popularDestinations = pick(destinations, 8); // already `n` desc
 ```
 
-Three independent requests, no auth, no sequencing — fire them in parallel.
+Four independent requests, no auth, no sequencing — fire them in parallel. Note that `companies` and `destinations` are the **same lists** the directory pages use, so a client with a cache needs no extra request to curate the homepage.
 
 ### Build a company detail page
 
@@ -519,7 +884,7 @@ Reads are unlimited, but 30 seconds is plenty — this content changes at human 
 
 ---
 
-## 7. Gotchas
+## 8. Gotchas
 
 - **`ts` is epoch milliseconds**, not an ISO string. `new Date(record.ts)` works directly. The only ISO timestamp in the public API is `time` from `/health`.
 - **Short field names are intentional** and match the existing site: `k` = company code, `c` = company code on a review/question, `n` = person's name, `r` = rating, `t` = review text, `q`/`a` = question/answer, `d` = display date, `n` on a *destination* = company count (a number, unrelated to the `n` on reviews).
@@ -529,25 +894,45 @@ Reads are unlimited, but 30 seconds is plenty — this content changes at human 
 - **Reviews are validated against the company list; questions are not.** A bad `c` on a review is a 400; on a question it silently creates an orphan.
 - **The six form endpoints share one rate-limit budget** of 20 per IP per 10 minutes. Behind a corporate NAT or a shared office IP, unrelated visitors consume each other's allowance.
 - **`phone` is length-capped but not format-checked.** Validate it client-side or you will collect junk.
-- **No endpoint returns a single record by id**, and there is no search, filter or sort parameter on any read beyond `?c=`. Do that work in the client.
+- **Only destinations have a by-key read.** `GET /api/destinations/:slug` takes the slug, not an `_id`; nothing else fetches one record, and there is no search, filter or sort parameter on any read beyond `?c=`. Do that work in the client.
+- **Company-to-destination coverage lives on the company**, in `places` — an array of destination slugs. There is no reverse pointer on the destination, which is why `/api/destinations/:slug` exists at all. `places` may be absent on older records; read it as `?? []`.
+- **A destination's cover image is optional.** `img` is `""` or missing for most records; always keep the `c1`/`c2` gradient behind it.
+- **A package's `c` and `d` always resolve.** Both are validated when the package is written and a package cannot be published while either is unresolvable, so `GET /packages?d=<slug>` is a complete and correct answer to "what can I book here" — no client-side filtering is needed to make it safe.
+- **`avail` is about booking, `status` is about listing.** Never hide a `soldout` package: travellers compare it and enquire about the next departure.
+- **A package's two itinerary fields are independent.** `itinerary` (the day-by-day list) and `pdf` (the downloadable document) are set separately by an admin; show whichever arrived rather than treating one as a fallback for the other.
+- **Packages are capped at 200** per response, like reviews and questions. Narrow with the filters rather than paging — there is no paging.
 - **No personalisation exists.** `/api/members` stores a name and email; nothing reads it back.
 
 ---
 
-## 8. Endpoint summary
+## 9. Endpoint summary
 
 | Method | Path | Auth | Limited | Returns in `data` |
 | --- | --- | --- | --- | --- |
 | GET | `/api/health` | — | — | `{ ok, time }` |
 | GET | `/api/companies` | — | — | Company array, score desc |
 | GET | `/api/destinations` | — | — | Destination array, `n` desc, each with `id` |
+| GET | `/api/destinations/:slug` | — | — | One destination + its covering `companies`, or 404 |
 | GET | `/api/reviews?c=` | — | — | Approved review array, newest first, max 500 |
 | GET | `/api/questions?c=` | — | — | Non-hidden question array, newest first, max 500 |
+| GET | `/api/metrics` | — | — | Homepage hero metric array, `order` asc |
+| GET | `/api/packages?d=&c=&minPrice=&maxPrice=&nights=&avail=` | — | — | Package array, cheapest first, max 200 |
+| GET | `/api/packages/:id` | — | — | One package, or 404 |
+| GET | `/api/content?group=` | — | — | Content lists grouped by `group` |
+| GET | `/api/settings` | — | — | `{ key: value }`, always complete |
 | POST | `/api/enquiries` | — | ✅ | `{ _id, status: "new" }` |
 | POST | `/api/callbacks` | — | ✅ | `{ _id, status: "new" }` |
 | POST | `/api/applications` | — | ✅ | `{ _id, status: "active" }` |
 | POST | `/api/questions` | — | ✅ | `{ _id, status: "open" }` |
 | POST | `/api/reviews` | — | ✅ | `{ _id, status: "pending" \| "approved" }` |
-| POST | `/api/members` | — | ✅ | `{ _id, name, email }` |
+| POST | `/api/members` | — | ✅ | `{ _id, name, email }` — identity capture, **no token** |
+| POST | `/api/auth/customer/register` | — | ✅ | `{ token, member }` |
+| POST | `/api/auth/customer/login` | — | ✅ | `{ token, member }` — email, username or phone |
+| GET | `/api/auth/customer/me` | 🔒 | — | `{ member }` |
+| PATCH | `/api/auth/customer/me` | 🔒 | — | `{ member }` |
+| POST | `/api/auth/customer/password` | 🔒 | — | `{ token, member }` |
+| POST | `/api/bookings` | 🔒 | ✅ | The new booking, `status: "pending"` |
+| GET | `/api/bookings?status=` | 🔒 | — | The caller's own bookings, newest first |
+| GET | `/api/bookings/:id` | 🔒 | — | One of the caller's own, or 404 |
 
 The five ✅ rows plus `/api/members` share a single 20-per-10-minutes-per-IP budget.

@@ -1,10 +1,10 @@
-const Application = require('./application.model');
-const Company = require('../company/company.model');
-const crudController = require('../shared/crud.controller');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const ApiError = require('../../utils/ApiError');
-const pick = require('../../utils/pick');
+import Application from './application.model.js';
+import Company from '../company/company.model.js';
+import crudController from '../shared/crud.controller.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import ApiError from '../../utils/ApiError.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = [
   'company', 'contact', 'email', 'phone', 'city', 'years', 'stage', 'stageTs', 'status', 'notes',
@@ -51,7 +51,7 @@ const publish = asyncHandler(async (req, res) => {
   ApiResponse.created(res, company, 'Company published successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Application, EDITABLE_FIELDS, { one: 'Application', many: 'Applications' }),
   submit,
   publish,

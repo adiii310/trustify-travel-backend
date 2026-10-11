@@ -1,6 +1,6 @@
-const M = require('../../models');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
+import M from '../../models/index.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
 
 /** GET /api/admin/stats — the counters on the admin dashboard. */
 const stats = asyncHandler(async (req, res) => {
@@ -32,4 +32,4 @@ const stats = asyncHandler(async (req, res) => {
   );
 });
 
-module.exports = { stats };
+export default { stats };

@@ -235,7 +235,7 @@ footer{border-top:1px solid var(--line);margin-top:40px;padding-top:18px;color:v
 const R = (n,t,d)=>({n,t,r:true,d});   // required field
 const O = (n,t,d)=>({n,t,r:false,d});  // optional field
 
-const RESOURCES = ['companies','destinations','reviews','questions','enquiries','callbacks','applications','members'];
+const RESOURCES = ['companies','destinations','reviews','questions','enquiries','callbacks','applications','members','metrics','packages','content','settings','bookings'];
 
 const GROUPS = [
 {
@@ -263,6 +263,9 @@ const GROUPS = [
     <b>"price"</b>: 10499,
     <b>"reviews"</b>: 2340,
     <b>"tags"</b>: ["Custom Itineraries", "24x7 Support"],
+    <b>"places"</b>: ["kedarnath", "kashmir"],   <i>// destination slugs it covers</i>
+    <b>"featured"</b>: false,         <i>// picked for the homepage strip</i>
+    <b>"featuredRank"</b>: 0,         <i>// position, ascending</i>
     <b>"status"</b>: "published",
     <b>"ts"</b>: 1759900000000
   }
@@ -270,7 +273,7 @@ const GROUPS = [
   },
   {
     m:'GET', p:'/api/destinations', sum:'List destinations',
-    desc:'Published destinations sorted by <code>n</code> (number of verified companies) descending. Each item carries an extra <code>id</code> field that mirrors <code>slug</code> — link by <code>id</code> when building destination pages.',
+    desc:'Published destinations sorted by <code>n</code> (number of verified companies) descending. Each item carries an extra <code>id</code> field that mirrors <code>slug</code> — link by <code>id</code> when building destination pages. <code>featured</code> / <code>featuredRank</code> curate the homepage grid; when nothing is featured the client falls back to the first 8 of this list. <code>img</code> is an optional cover photo — an empty string or a missing key both mean "no photo", so always keep the <code>c1</code>/<code>c2</code> gradient behind it.',
     res:[{c:200,msg:'Destinations fetched successfully',s:`[
   {
     <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5b1",
@@ -287,6 +290,206 @@ const GROUPS = [
     <b>"budget"</b>: "₹10,000 - ₹15,000",
     <b>"c1"</b>: "#8a6a52",
     <b>"c2"</b>: "#2b4463",
+    <b>"img"</b>: "https://res.cloudinary.com/…/kedarnath.jpg",  <i>// optional cover photo</i>
+    <b>"featured"</b>: false,         <i>// picked for the homepage grid</i>
+    <b>"featuredRank"</b>: 0,         <i>// position, ascending</i>
+    <b>"status"</b>: "published",
+    <b>"ts"</b>: 1759900000000
+  }
+]`}]
+  },
+  {
+    m:'GET', p:'/api/destinations/:slug', sum:'One destination and the companies covering it',
+    desc:'A single published destination plus every published company that runs trips to it — the only public read that joins two collections, because a destination page needs both halves before it can render. The path takes the <code>slug</code> (<code>kedarnath</code>), not an <code>_id</code>, and matches case-insensitively. The company list is built by matching the slug against each company\'s <code>places</code> array and is sorted by trust <code>score</code> descending; <b>an empty array is normal</b> and means no verified company sells this destination yet. <code>n</code> is the admin-entered headline figure and is <b>not</b> <code>companies.length</code> — nothing keeps the two in step.',
+    ex:'/api/destinations/kedarnath',
+    res:[{c:200,msg:'Destination fetched successfully',s:`{
+  <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5b1",
+  <b>"slug"</b>: "kedarnath",
+  <b>"id"</b>: "kedarnath",
+  <b>"name"</b>: "Kedarnath",
+  <b>"region"</b>: "India",
+  <b>"n"</b>: 32,                    <i>// headline figure, not companies.length</i>
+  <b>"rating"</b>: 4.7,
+  <b>"desc"</b>: "Verified travel companies for Kedarnath.",
+  <b>"c1"</b>: "#8a6a52",
+  <b>"c2"</b>: "#2b4463",
+  <b>"img"</b>: "https://res.cloudinary.com/…/kedarnath.jpg",
+  <b>"status"</b>: "published",
+  <b>"ts"</b>: 1759900000000,
+  <b>"companies"</b>: [              <i>// same shape as GET /api/companies</i>
+    { <b>"_id"</b>: "…", <b>"k"</b>: "H", <b>"name"</b>: "Holiday Heaven", <b>"score"</b>: 96, <i>…</i> }
+  ]
+}`},
+      {c:404,msg:'Destination not found.',note:'unknown slug, or the destination is hidden'}]
+  },
+  {
+    m:'GET', p:'/api/packages', sum:'List packages for a destination or company',
+    desc:'Published packages, <b>cheapest first</b>, capped at 200. This is the destination-to-package relationship made readable: a package belongs to exactly one company and one destination, both references are validated when it is written, and a package cannot be published while either fails to resolve — so every row here points at a real company and a real destination. One destination holds many packages, from one company or several, and the same company may list several durations for the same destination; they are independent records. <b><code>avail</code> is not <code>status</code></b>: <code>status</code> decides whether the package is listed, <code>avail</code> whether it can be booked today, so a <code>soldout</code> package is still returned and still comparable. <b>The itinerary comes in two independent forms</b> — <code>itinerary</code>, the structured day-by-day list, and <code>pdf</code>, the same plan as a downloadable document. A package may carry either, both or neither; render each only if it has something in it, because neither is derived from the other. To offer a download rather than an inline view, insert Cloudinary\'s <code>fl_attachment</code> flag after <code>/upload/</code> — a plain <code>&lt;a download&gt;</code> is ignored by browsers on a cross-origin link.',
+    q:[O('d','string','Destination slug. The main filter — a destination page passes this.'),
+       O('c','string','Company short code (<code>k</code>).'),
+       O('minPrice','number','Per person, INR. Inclusive.'),
+       O('maxPrice','number','Per person, INR. Inclusive.'),
+       O('nights','number','Exact number of nights.'),
+       O('avail','string','<code>open</code> | <code>limited</code> | <code>soldout</code>. An unknown value is a 400, not an empty list.')],
+    ex:'/api/packages?d=kedarkantha&maxPrice=10000',
+    res:[{c:200,msg:'Packages fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "6ac8caab2a8d0ce684259dd5",
+    <b>"c"</b>: "H",                  <i>// company short code — always resolves</i>
+    <b>"d"</b>: "kedarkantha",        <i>// destination slug — always resolves</i>
+    <b>"title"</b>: "3D/2N Kedarkantha Weekend Summit",
+    <b>"desc"</b>: "Dehradun to Dehradun, two nights under canvas.",
+    <b>"nights"</b>: 2,
+    <b>"days"</b>: 3,
+    <b>"price"</b>: 7499,             <i>// per person, INR — drives the sort</i>
+    <b>"inclusions"</b>: ["Dehradun pickup and drop", "Twin-sharing tents"],
+    <b>"exclusions"</b>: ["Personal trekking gear"],
+    <b>"itinerary"</b>: [ { <b>"day"</b>: 1, <b>"title"</b>: "Dehradun to Sankri", <b>"detail"</b>: "…" } ],
+    <b>"pdf"</b>: "https://res.cloudinary.com/…/kedarkantha-itinerary.pdf",  <i>// optional</i>
+    <b>"img"</b>: "https://res.cloudinary.com/…/kedarkantha.jpg",
+    <b>"avail"</b>: "open",
+    <b>"status"</b>: "published",
+    <b>"ts"</b>: 1759900000000
+  }
+]`},
+      {c:400,msg:'avail must be one of open, limited, soldout.',errors:`[ { <b>"field"</b>: "avail", <b>"message"</b>: "Unknown availability." } ]`}]
+  },
+  {
+    m:'GET', p:'/api/packages/:id', sum:'One package',
+    desc:'A single published package by its <code>_id</code> — the only public read keyed on an id, because a shared booking link has to keep working and a package has no other stable handle. Resolve <code>c</code> and <code>d</code> against the company and destination lists; as everywhere else in this API there is no server-side join.',
+    ex:'/api/packages/6ac8caab2a8d0ce684259dd5',
+    res:[{c:200,msg:'Package fetched successfully',s:`{ <i>…the full package record…</i> }`},
+      {c:404,msg:'Package not found.',note:'unknown id, or the package is hidden'}]
+  },
+  {
+    m:'GET', p:'/api/content', sum:'Site content lists, grouped',
+    desc:'Every published site-content entry, <b>grouped by list</b> and already in display order. One request rather than five: the homepage alone needs <code>badge</code> and <code>step</code>. Every requested group is always present — an empty array when it has no rows — so no caller has to guard a missing key. An empty group means that section is hidden on the customer site; the site ships no built-in copy to fall back to.',
+    q:[O('group','string','One of <code>badge</code>, <code>step</code>, <code>resource</code>, <code>parameter</code>, <code>interest</code>. Narrows the response to that list, with the same object shape.')],
+    res:[{c:200,msg:'Content fetched successfully',s:`{
+  <b>"badge"</b>:     [ { <b>"_id"</b>: "…", <b>"group"</b>: "badge", <b>"icon"</b>: "✔", <b>"title"</b>: "Verified &amp; Tested", <b>"body"</b>: "", <b>"order"</b>: 0, <b>"status"</b>: "published", <b>"ts"</b>: 1 } ],
+  <b>"step"</b>:      [ <i>… icon + title + body — the verification steps …</i> ],
+  <b>"resource"</b>:  [ <i>… title is the question, body the answer …</i> ],
+  <b>"parameter"</b>: [ <i>… trust-parameter names, title only …</i> ],
+  <b>"interest"</b>:  [ <i>… planner interest chips, title only …</i> ]
+}`}]
+  },
+  {
+    m:'GET', p:'/api/settings', sum:'Site-wide settings',
+    desc:'Every setting as a flat <code>{ key: value }</code> map. The server fills in each declared key from its own defaults, so this response is <b>always complete</b> and the customer site needs no fallback of its own. A key present with an empty string is an admin clearing it deliberately — render nothing rather than substituting. An empty <code>site.whatsapp</code> means every WhatsApp button should be hidden rather than linking to a numberless <code>wa.me/</code>.',
+    res:[{c:200,msg:'Settings fetched successfully',s:`{
+  <b>"site.name"</b>: "Trustify Trips",
+  <b>"site.tagline"</b>: "TRAVEL. VERIFIED.",
+  <b>"site.whatsapp"</b>: "",
+  <b>"site.whatsappMessage"</b>: "Hi Trustify Trips, I need help choosing a travel company."
+}`}]
+  },
+  {
+    m:'POST', p:'/api/auth/customer/register', sum:'Create a customer account', lim:true,
+    desc:'Creates a traveller account and returns a token, so there is no second sign-in step. <b>Upgrades an existing passwordless member rather than refusing:</b> <code>POST /api/members</code> has been capturing names and emails since before accounts existed, and a traveller whose email is already there is the same person. An email that already has a password is a genuine duplicate and is a 409. Phone numbers are normalised to digits, so <code>+91 98765 43210</code> and <code>9876543210</code> are one account. The bcrypt hash is never returned by any endpoint.',
+    body:[O('name','string','Max 80.'),
+          O('email','string','Must look like an email. Stored lower-cased.'),
+          O('phone','string','7-15 digits after normalisation. Unique.'),
+          ['username','string','no','3-30 characters: letters, numbers, dots, dashes, underscores. Unique. A third way to sign in.'],
+          O('password','string','At least 8 characters.')],
+    sample:{name:'Aarav Shah',email:'aarav@example.com',phone:'9876543210',username:'aarav',password:'at-least-8-chars'},
+    res:[{c:201,msg:'Account created successfully',s:`{
+  <b>"token"</b>: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…",
+  <b>"member"</b>: {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f7a1",
+    <b>"name"</b>: "Aarav Shah",
+    <b>"email"</b>: "aarav@example.com",
+    <b>"username"</b>: "aarav",
+    <b>"phone"</b>: "9876543210",
+    <b>"ts"</b>: 1759900000000
+  }
+}`},
+      {c:400,msg:'Enter a valid email address.',errors:`[ <i>every problem, not just the first</i> ]`},
+      {c:409,msg:'That email address is already registered.',errors:`[ { <b>"field"</b>: "email", <b>"message"</b>: "Already registered." } ]`}]
+  },
+  {
+    m:'POST', p:'/api/auth/customer/login', sum:'Sign in with email, username or phone', lim:true,
+    desc:'One <code>identifier</code> field takes <b>an email, a username or a phone number</b> — which one it is is inferred from its shape, because a traveller types what they remember. Every failure returns the same 401 with the same message: a wrong password, an unknown identifier and an account that never set a password are indistinguishable, so this cannot be used to discover who has an account. Rate limited to 10 attempts per IP per 15 minutes.',
+    body:[O('identifier','string','An email, a username, or a phone number.'),
+          O('password','string','')],
+    sample:{identifier:'aarav@example.com',password:'…'},
+    res:[{c:200,msg:'Signed in successfully',s:`{ <b>"token"</b>: "eyJ…", <b>"member"</b>: { <i>…</i> } }`},
+      {c:401,msg:'Those details do not match an account.',note:'identical for every kind of failure'}]
+  },
+  {
+    m:'GET', p:'/api/auth/customer/me', sum:'The signed-in customer', auth:true,
+    desc:'Returns the account the supplied customer token belongs to. Call it on start-up to check a restored token is still usable; a 401 means sign out. <b>Customer tokens and admin tokens are not interchangeable</b> — each carries an audience claim, and presenting one where the other belongs fails before any lookup.',
+    res:[{c:200,msg:'Account fetched successfully',s:`{ <b>"member"</b>: { <i>…</i> } }`},
+      {c:401,msg:'Your session expired. Sign in again.'}]
+  },
+  {
+    m:'PATCH', p:'/api/auth/customer/me', sum:'Update the customer profile', auth:true,
+    desc:'Updates <code>name</code>, <code>phone</code> and <code>username</code>. <b><code>email</code> is deliberately not updatable</b>: it is the key registration matches on and the handle every historical booking was made under, so changing it is a support action rather than a self-service one.',
+    sample:{name:'Aarav Shah',phone:'9876543210',username:'aarav'},
+    res:[{c:200,msg:'Profile updated successfully',s:`{ <b>"member"</b>: { <i>…</i> } }`},
+      {c:400,msg:'Already taken.',errors:`[ { <b>"field"</b>: "username", <b>"message"</b>: "Already taken." } ]`}]
+  },
+  {
+    m:'POST', p:'/api/auth/customer/password', sum:'Change the customer password', auth:true,
+    desc:'Proves the current password before changing it, and returns a fresh token — the old one stays valid until it expires, and a password change is exactly when a caller expects the session to be reissued.',
+    body:[O('currentPassword','string',''), O('newPassword','string','At least 8 characters.')],
+    sample:{currentPassword:'…',newPassword:'at-least-8-chars'},
+    res:[{c:200,msg:'Password changed successfully',s:`{ <b>"token"</b>: "eyJ…", <b>"member"</b>: { <i>…</i> } }`},
+      {c:401,msg:'Your current password is not correct.'}]
+  },
+  {
+    m:'POST', p:'/api/bookings', sum:'Request a booking', auth:true, lim:true,
+    desc:'Requests a booking against a published package. <b>This is not a confirmation:</b> it creates a <code>pending</code> record, takes no payment and reserves nothing — the admin team reviews it and gets in touch. <b>The server prices it</b> as <code>package.price × pax</code>; an <code>amount</code>, <code>price</code> or <code>status</code> in the request body is ignored. The customer is taken from the token, so there is no customer id to send and none to manipulate. The package must be published and not sold out.',
+    body:[O('pkg','string','The package <code>_id</code>.'),
+          O('pax','number','1-50 travellers.'),
+          ['startDate','string','no','<code>YYYY-MM-DD</code>, or omitted.'],
+          ['msg','string','no','Special requirements, max 2000.'],
+          ['phone','string','no','Defaults to the account\'s number.']],
+    sample:{pkg:'6ac8caab2a8d0ce684259dd5',pax:2,startDate:'2027-01-15',msg:'Two vegetarians, please.'},
+    res:[{c:201,msg:'Booking request submitted successfully',s:`{
+  <b>"_id"</b>: "6ac8dc106472e74037682a7a",
+  <b>"ref"</b>: "TT-FN4R7B",            <i>// quotable and unique</i>
+  <b>"pkg"</b>: "6ac8caab…", <b>"c"</b>: "H", <b>"d"</b>: "kedarkantha",
+  <b>"snap"</b>: {                      <i>// as priced when booked, not today</i>
+    <b>"title"</b>: "3D/2N Kedarkantha Weekend Summit", <b>"price"</b>: 7499,
+    <b>"nights"</b>: 2, <b>"days"</b>: 3,
+    <b>"destName"</b>: "Kedarkantha", <b>"companyName"</b>: "Holiday Heaven"
+  },
+  <b>"startDate"</b>: "2027-01-15",
+  <b>"pax"</b>: 2,
+  <b>"status"</b>: "pending",           <i>// never "confirmed" on creation</i>
+  <b>"payStatus"</b>: "unpaid",
+  <b>"amount"</b>: 14998,               <i>// priced by the server</i>
+  <b>"paid"</b>: 0, <b>"balance"</b>: 14998,
+  <b>"update"</b>: "",                  <i>// the team's note to the traveller</i>
+  <b>"ts"</b>: 1759900000000
+}`},
+      {c:400,msg:'That package is no longer available.'},
+      {c:401,msg:'Sign in to continue.'}]
+  },
+  {
+    m:'GET', p:'/api/bookings', sum:'The signed-in customer\'s bookings', auth:true,
+    desc:'The caller\'s own bookings, newest first, capped at 200. <code>?status=</code> filters. <b>This is a narrower projection than the admin API returns</b> — the internal notes, the audit trail, the assignee and the individual payment records are absent, because the server builds this shape by naming what goes in rather than deleting what must stay out. A field added to the model later stays invisible here until someone deliberately lists it. <b><code>status</code> and <code>payStatus</code> are independent:</b> a booking can be confirmed while only partly paid.',
+    q:[O('status','string','<code>pending</code> | <code>contacted</code> | <code>awaiting_payment</code> | <code>confirmed</code> | <code>completed</code> | <code>cancelled</code> | <code>rejected</code>.')],
+    res:[{c:200,msg:'Bookings fetched successfully',s:`[ { <i>…the shape above…</i> } ]`},
+      {c:401,msg:'Sign in to continue.'}]
+  },
+  {
+    m:'GET', p:'/api/bookings/:id', sum:'One of the customer\'s own bookings', auth:true,
+    desc:'A booking belonging to someone else is a <b>404, not a 403</b> — the API will not confirm that another customer\'s booking exists. The member id is part of the query rather than checked afterwards, which is what makes that true.',
+    ex:'/api/bookings/6ac8dc106472e74037682a7a',
+    res:[{c:200,msg:'Booking fetched successfully',s:`{ <i>…the shape above…</i> }`},
+      {c:404,msg:'Booking not found.',note:'unknown, or not yours'}]
+  },
+  {
+    m:'GET', p:'/api/metrics', sum:'List homepage hero metrics',
+    desc:'The headline figures across the top of the customer homepage, published only, sorted by <code>order</code> ascending (not by <code>ts</code> like every other public list — this is a fixed strip, not a feed). <code>value</code> is admin-entered display <i>text</i>, not a computed count: render it verbatim.',
+    res:[{c:200,msg:'Metrics fetched successfully',s:`[
+  {
+    <b>"_id"</b>: "66f0a1c2e4b0a1d2c3e4f5c7",
+    <b>"icon"</b>: "🏢",              <i>// emoji, may be ""</i>
+    <b>"value"</b>: "450+",          <i>// display text, not a number</i>
+    <b>"label"</b>: "Verified Companies",
+    <b>"order"</b>: 0,
     <b>"status"</b>: "published",
     <b>"ts"</b>: 1759900000000
   }
@@ -435,7 +638,7 @@ const GROUPS = [
   }]
 },
 {
-  id:'admin', title:'Admin endpoints', note:'Every route below requires <code>Authorization: Bearer &lt;token&gt;</code>. A missing or expired token returns 401 before any work is done. The eight collections each have their own routes; they behave identically, so they are documented once with <em>:resource</em> standing for the collection name.',
+  id:'admin', title:'Admin endpoints', note:'Every route below requires <code>Authorization: Bearer &lt;token&gt;</code>. A missing or expired token returns 401 before any work is done. The thirteen collections each have their own routes; they behave identically, so they are documented once with <em>:resource</em> standing for the collection name. The two <code>/uploads</code> routes at the end are not a collection — they have no list, no ids and store nothing.',
   eps:[
   {
     m:'GET', p:'/api/admin/stats', sum:'Dashboard counters', auth:true,
@@ -520,6 +723,100 @@ const GROUPS = [
       {c:400,msg:'Finish every verification step before publishing.'},
       {c:404,msg:'Application not found.'},
       {c:409,msg:'This company is already published.'}]
+  },
+  {
+    m:'GET', p:'/api/admin/bookings/stats', sum:'Booking dashboard counters', auth:true,
+    desc:'Every booking counter, aggregated server-side from the real rows in one query rather than a count per status. Every known status is present as a key, so a dashboard never has to guard a missing one.',
+    res:[{c:200,msg:'Stats fetched successfully',s:`{
+  <b>"total"</b>: 37,
+  <b>"status"</b>: { <b>"pending"</b>: 6, <b>"contacted"</b>: 4, <b>"awaiting_payment"</b>: 3,
+              <b>"confirmed"</b>: 18, <b>"completed"</b>: 4, <b>"cancelled"</b>: 1, <b>"rejected"</b>: 1 },
+  <b>"payStatus"</b>: { <b>"not_required"</b>: 1, <b>"unpaid"</b>: 9, <b>"partially_paid"</b>: 5, <b>"paid"</b>: 21, <b>"refunded"</b>: 1 },
+  <b>"quoted"</b>: 742310
+}`}]
+  },
+  {
+    m:'PATCH', p:'/api/admin/bookings/:id/status', sum:'Move a booking through the workflow', auth:true,
+    desc:'Two rules, both enforced here rather than in the UI. <b>The transition must be legal:</b> pending → contacted, awaiting_payment, cancelled, rejected; contacted → awaiting_payment, confirmed, cancelled, rejected; awaiting_payment → confirmed, contacted, cancelled, rejected; confirmed → completed, cancelled; and completed, cancelled and rejected are terminal. <b>And confirming requires payment to be settled or waived</b> — <code>payStatus</code> must be <code>paid</code>, <code>partially_paid</code> or <code>not_required</code>. That second rule is the one this whole workflow exists to protect: a booking becomes confirmed because an admin verified a payment, never because a request arrived. Cancelling and rejecting require a <code>reason</code>, which goes into the audit trail.',
+    body:[O('status','string','The target status.'),
+          ['reason','string','no','Required when cancelling or rejecting.']],
+    sample:{status:'confirmed'},
+    res:[{c:200,msg:'Booking marked confirmed',s:`{ <i>…the full booking…</i> }`},
+      {c:400,msg:'A pending booking can only become: contacted, awaiting_payment, cancelled, rejected.'},
+      {c:400,msg:'Record the payment before confirming, or mark the booking as not requiring one.'}]
+  },
+  {
+    m:'POST', p:'/api/admin/bookings/:id/payments', sum:'Record a payment or refund', auth:true,
+    desc:'Records money the admin verified <b>outside this application</b>. There is no gateway and no checkout — a row here is an admin stating that money moved, which is why the acting admin is recorded against it. <code>payStatus</code> is recalculated from the resulting ledger after every entry, so it can never disagree with the recorded payments. A refund sets <code>payStatus</code> to <code>refunded</code> and <b>keeps the original payments</b>, so the history stays intact. The whole change is one document write, which MongoDB applies atomically; no multi-document transaction is involved because none is needed.',
+    body:[O('amount','number','Must be more than zero.'),
+          ['kind','string','no','<code>payment</code> (default) or <code>refund</code>.'],
+          ['method','string','no','<code>cash</code> | <code>bank_transfer</code> | <code>upi</code> | <code>cheque</code> | <code>card_offline</code> | <code>other</code>.'],
+          ['reference','string','no','Bank reference, UPI id, cheque number — whatever proves it externally.'],
+          ['at','number','no','When the money moved, epoch ms. Defaults to now.'],
+          ['note','string','no','Max 500.']],
+    sample:{amount:5000,method:'upi',reference:'UPI-A1B2',note:'Confirmed on the bank statement'},
+    res:[{c:201,msg:'Payment recorded',s:`{ <i>…the booking, with payStatus recalculated…</i> }`},
+      {c:400,msg:'You cannot refund more than has been received.'},
+      {c:409,msg:'A payment with that reference and amount is already recorded.',note:'far more likely a double submit than two real payments'}]
+  },
+  {
+    m:'PATCH', p:'/api/admin/bookings/:id/pay-status', sum:'Declare a payment status', auth:true,
+    desc:'Only <code>not_required</code> and <code>unpaid</code> are accepted. <code>paid</code>, <code>partially_paid</code> and <code>refunded</code> are <b>derived from the ledger</b> and setting them by hand is a 400 — that is how a booking would otherwise end up claiming money nobody recorded.',
+    sample:{payStatus:'not_required'},
+    res:[{c:200,msg:'Payment status updated',s:`{ <i>…the booking…</i> }`},
+      {c:400,msg:'Only "not_required" and "unpaid" can be set directly — the others follow the recorded payments.'}]
+  },
+  {
+    m:'POST', p:'/api/admin/bookings/:id/notes', sum:'Add an internal note', auth:true,
+    desc:'Appends a dated, attributed line to the booking\'s <code>notes</code> — the <b>internal</b> trail. <code>notes</code> is never returned by any customer endpoint; the customer-facing field is <code>update</code>, set through the generic PATCH.',
+    sample:{text:'Called, left a voicemail.'},
+    res:[{c:201,msg:'Note added',s:`{ <i>…the booking…</i> }`},
+      {c:400,msg:'Write the note first.'}]
+  },
+  {
+    m:'POST', p:'/api/admin/uploads/image', sum:'Upload a cover image', auth:true,
+    desc:'Uploads one image to the project\'s Cloudinary account and returns where it landed. <b>The only <code>multipart/form-data</code> endpoint in the API</b> — every other route speaks JSON. It stores nothing in the database: take the returned <code>url</code> and <code>publicId</code> and PATCH them onto a record yourself (<code>img</code> / <code>imgId</code> on a destination). The file part <b>must</b> be named <code>image</code>. Accepted types are JPEG, PNG, WebP and AVIF, up to 5&nbsp;MB; SVG is rejected on purpose because it can carry script and these files are served straight to browsers. Uploads are stored at most 1600px on the longest edge and delivered in whatever format the requesting browser accepts. Author them as <b>3:2 landscape, at least 1200×800</b> — the ratio is a recommendation rather than a check, but the customer site centre-crops the image into a 170px-tall card and a full-width hero, so a portrait or square upload loses its subject.',
+    curlExtra:'-F "image=@kedarnath.jpg"',
+    noTry:true,
+    noTryNote:'Not available in the Try it runner — it sends JSON, and this endpoint needs <code>multipart/form-data</code>. Use the cURL above, or the Destinations screen in the admin panel.',
+    res:[{c:201,msg:'Image uploaded successfully',s:`{
+  <b>"url"</b>: "https://res.cloudinary.com/…/trustify/destinations/ab12cd.jpg",
+  <b>"publicId"</b>: "trustify/destinations/ab12cd",
+  <b>"width"</b>: 1600,
+  <b>"height"</b>: 1067,
+  <b>"format"</b>: "jpg",
+  <b>"bytes"</b>: 214503
+}`},
+      {c:400,msg:'That file type is not supported. Upload a JPEG, PNG, WebP or AVIF image.',errors:`[ { <b>"field"</b>: "image", <b>"message"</b>: "Unsupported file type." } ]`},
+      {c:400,msg:'That image is too large. The limit is 5 MB.'},
+      {c:503,msg:'Image uploads are not configured on this server.',note:'the CLOUDINARY_* variables are unset — the feature is off, not broken'}]
+  },
+  {
+    m:'POST', p:'/api/admin/uploads/document', sum:'Upload an itinerary PDF', auth:true,
+    desc:'Uploads one <b>PDF</b> — a package itinerary — and returns where it landed. The second <code>multipart/form-data</code> endpoint in the API. Like the image endpoint it stores nothing in the database: write <code>url</code> and <code>publicId</code> onto a record (<code>pdf</code> / <code>pdfId</code> on a package) with a separate PATCH. The file part <b>must</b> be named <code>file</code>, and only <code>application/pdf</code> is accepted, up to 10&nbsp;MB — a traveller downloads this onto a phone, and a .docx or .pages file is one they may not be able to open. <b>Stored as a Cloudinary <code>raw</code> resource, not an image:</b> Cloudinary would otherwise infer <code>image</code> for a PDF, and accounts block PDF <i>delivery</i> under that type by default, so the file uploads fine and then 401s when a traveller opens it. The practical consequence is that deleting one needs <code>resourceType: "raw"</code>. <code>downloadUrl</code> is the same file with the <code>fl_attachment</code> flag, built server-side so neither frontend has to know that path format — a plain <code>&lt;a download&gt;</code> does not work on a cross-origin link.',
+    curlExtra:'-F "file=@kedarkantha-itinerary.pdf"',
+    noTry:true,
+    noTryNote:'Not available in the Try it runner — it sends JSON, and this endpoint needs <code>multipart/form-data</code>. Use the cURL above, or the Packages screen in the admin panel.',
+    res:[{c:201,msg:'Itinerary uploaded successfully',s:`{
+  <b>"url"</b>: "https://res.cloudinary.com/…/trustify/destinations/abc123.pdf",
+  <b>"downloadUrl"</b>: "https://res.cloudinary.com/…/upload/fl_attachment/…/abc123.pdf",
+  <b>"publicId"</b>: "trustify/destinations/abc123",
+  <b>"bytes"</b>: 184320,
+  <b>"name"</b>: "kedarkantha-itinerary.pdf"
+}`},
+      {c:400,msg:'Itineraries must be a PDF.',errors:`[ { <b>"field"</b>: "file", <b>"message"</b>: "Only PDF files are accepted." } ]`},
+      {c:503,msg:'File uploads are not configured on this server.',note:'the CLOUDINARY_* variables are unset'}]
+  },
+  {
+    m:'POST', p:'/api/admin/uploads/destroy', sum:'Remove an uploaded image', auth:true,
+    desc:'Deletes a previously uploaded file. A POST with a JSON body rather than a DELETE with the id in the path, because a <code>publicId</code> carries its folder and therefore contains slashes. Deleting an id that is already gone is <b>not</b> an error — <code>result</code> comes back as <code>"not found"</code> and the status is still 200, because the caller\'s goal ("this file is not hosted any more") is satisfied either way. This never touches the database: clear <code>img</code> / <code>imgId</code> on the record yourself, and in that order — orphaning a file only costs storage, while clearing the record first and then failing the delete loses the id you needed.',
+    body:[O('publicId','string','The <code>publicId</code> returned by the upload endpoint.')],
+    body:[O('publicId','string','The <code>publicId</code> returned by the upload endpoint.'),
+          ['resourceType','string','no','<code>image</code> (default) or <code>raw</code>. <b>Must match how the file was stored</b> — itinerary PDFs are raw, and deleting one as an image reports "not found" with a 200 and leaves the file hosted.']],
+    sample:{publicId:'trustify/destinations/ab12cd'},
+    res:[{c:200,msg:'File removed successfully',s:`{ <b>"publicId"</b>: "trustify/destinations/ab12cd", <b>"resourceType"</b>: "image", <b>"result"</b>: "ok" }`},
+      {c:400,msg:'Supply the publicId of the image to remove.',errors:`[ { <b>"field"</b>: "publicId", <b>"message"</b>: "Required." } ]`},
+      {c:503,msg:'Image uploads are not configured on this server.'}]
   }]
 }];
 
@@ -530,13 +827,21 @@ const SCHEMAS = [
     ['name','string','yes','Max 120 characters.'],
     ['score','number','yes','Trust score, 0–100.'],
     ['rating','number','no','0–5. Default 0.'],
-    ['dests','number','no','Destinations covered. Default 0.'],
+    ['dests','number','no','Destinations covered — a display figure. Default 0.'],
     ['since','string','no','Verified since, e.g. "Jan 2023".'],
     ['city','string','no','Base city.'],
     ['exp','number','no','Years in business. Default 0.'],
     ['price','number','no','3N/4D price per person in INR. Default 0.'],
     ['reviews','number','no','Verified review count. Default 0.'],
     ['tags','string[]','no','Highlight tags, each max 40 characters.'],
+    ['about','string','no','Profile copy, max 3000. Empty hides the About panel on the site.'],
+    ['breakdown','object[]','no','<code>{ label, score }</code>; any length. Empty hides the breakdown panel — the site never synthesises it from the headline score.'],
+    ['docs','string[]','no','Verified document names. Empty hides that tab.'],
+    ['policies','object[]','no','<code>{ label, value }</code>. Empty hides that tab.'],
+    ['photos','string[]','no','Hosted gallery image URLs. Empty hides that tab.'],
+    ['places','string[]','no','Destination <b>slugs</b> this company runs trips to, lower-cased. Default <code>[]</code>. This — not <code>dests</code> — is what puts the company on a destination page; an unknown slug is accepted and simply matches nothing.'],
+    ['featured','boolean','no','Show in the homepage "Top Rated Companies" strip. Default <code>false</code>.'],
+    ['featuredRank','number','no','Position in that strip, ascending. Default 0; ties fall back to <code>score</code>.'],
     ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
     ['ts','number','no','Epoch ms. Set on create, used for sorting.']]},
 {n:'Destination', c:'destinations', d:'A destination page on the customer portal.',
@@ -552,7 +857,66 @@ const SCHEMAS = [
     ['budget','string','no','Typical budget range.'],
     ['c1','string','no','Card gradient start colour. Default <code>#2b4463</code>.'],
     ['c2','string','no','Card gradient end colour. Default <code>#0a1424</code>.'],
+    ['highlights','string[]','no','What there is to see. Empty hides that panel on the site.'],
+    ['img','string','no','Cover photo URL, max 500. Default <code>""</code>. Set it from the result of POST /api/admin/uploads/image.'],
+    ['imgId','string','no','That upload\'s <code>publicId</code>, max 300. Default <code>""</code>. Keep it so the old file can be removed when the cover changes.'],
+    ['featured','boolean','no','Show in the homepage "Popular Destinations" grid. Default <code>false</code>.'],
+    ['featuredRank','number','no','Position in that grid, ascending. Default 0; ties fall back to <code>n</code>.'],
     ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Package', c:'packages', d:'A trip a company sells to a destination. One company and one destination each; a destination holds many packages, from one company or several.',
+ f:[['c','string','yes','Company short code. <b>Validated on write</b> — an unresolvable code is a 400, and a package cannot be published while it fails to resolve.'],
+    ['d','string','yes','Destination slug. Validated the same way.'],
+    ['title','string','yes','Max 140.'],
+    ['price','number','yes','Per person, INR. Sorts the public list ascending.'],
+    ['desc','string','no','One-line pitch for the card, max 400.'],
+    ['nights','number','no','0–60.'],
+    ['days','number','no','0–60.'],
+    ['inclusions','string[]','no','Each entry max 200.'],
+    ['exclusions','string[]','no','Each entry max 200.'],
+    ['itinerary','object[]','no','The structured day-by-day list: <code>{ day, title, detail }</code>; day 1–60, title required. <b>Independent of <code>pdf</code></b> — a package may have either, both or neither.'],
+    ['pdf','string','no','Itinerary PDF URL, max 500. Set it from the result of POST /api/admin/uploads/document.'],
+    ['pdfId','string','no','That upload\'s <code>publicId</code>, max 300. Needed to delete the old file when the itinerary is replaced — and it must be deleted with <code>resourceType: "raw"</code>.'],
+    ['img','string','no','Cover photo URL. Falls back to the destination\'s own cover on the site.'],
+    ['imgId','string','no','That upload\'s <code>publicId</code>.'],
+    ['avail','enum','no','<code>open</code> | <code>limited</code> | <code>soldout</code>. Default <code>open</code>. Whether it can be <b>booked</b> — not whether it is listed.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Booking', c:'bookings', d:'A customer booking request, worked manually by the admin team. Contact, payment collected offline, then explicit confirmation — nothing in this API confirms a booking on its own.',
+ f:[['ref','string','yes','Unique, quotable, e.g. <code>TT-FN4R7B</code>. Generated — not editable.'],
+    ['member','ObjectId','yes','The customer. Taken from their token at request time.'],
+    ['name','string','yes','Contact details <b>as given on the request</b>, snapshotted — the member may edit their profile afterwards.'],
+    ['email','string','yes','As above.'],
+    ['phone','string','yes','As above.'],
+    ['pkg','ObjectId','yes','The package. Validated on creation.'],
+    ['c','string','yes','Company short code.'],
+    ['d','string','yes','Destination slug.'],
+    ['snap','object','no','<code>{ title, price, nights, days, destName, companyName }</code> at booking time. <b>This is why booking history survives a package being re-priced, renamed or withdrawn.</b>'],
+    ['startDate','string','no','<code>YYYY-MM-DD</code>.'],
+    ['pax','number','yes','1-50 travellers.'],
+    ['msg','string','no','The customer\'s own special requirements. Visible to both sides.'],
+    ['status','enum','no','<code>pending</code> | <code>contacted</code> | <code>awaiting_payment</code> | <code>confirmed</code> | <code>completed</code> | <code>cancelled</code> | <code>rejected</code>. <b>Not settable through PATCH</b> — it has its own route.'],
+    ['payStatus','enum','no','<code>not_required</code> | <code>unpaid</code> | <code>partially_paid</code> | <code>paid</code> | <code>refunded</code>. Mostly derived from the ledger; see its own route.'],
+    ['amount','number','no','Total quoted, INR. Seeded as price × pax.'],
+    ['advance','number','no','Advance the customer was asked for.'],
+    ['payments','object[]','no','The ledger. Append-only through its own route.'],
+    ['notes','string','no','<b>Internal. Never leaves through a customer endpoint.</b>'],
+    ['update','string','no','Customer-facing note, shown in My Bookings.'],
+    ['assignee','ObjectId','no','Who is handling it.'],
+    ['history','object[]','no','Audit trail: <code>{ at, byName, action, from, to, reason }</code>.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Content', c:'content', d:'One entry in an editable site-wide list. Five lists share this collection because every entry is the same ordered icon + title + body.',
+ f:[['group','enum','yes','<code>badge</code> | <code>step</code> | <code>resource</code> | <code>parameter</code> | <code>interest</code>.'],
+    ['title','string','yes','Badge label, step title, FAQ question, parameter name or interest. Max 200.'],
+    ['icon','string','no','Emoji. Used by badges and steps only.'],
+    ['body','string','no','Step detail or FAQ answer, max 2000. Empty for the title-only groups.'],
+    ['order','number','no','Ascending; ties fall back to ts.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Setting', c:'settings', d:'One site-wide value the customer site reads by key. Edit-only — the backend declares the key set and creates any missing row when the list is read.',
+ f:[['key','string','yes','Declared by the backend, e.g. <code>site.whatsapp</code>. Unique.'],
+    ['value','string','no','Max 500. The only field you normally send. Empty means the site hides whatever the key drives.'],
+    ['label','string','no','Admin-facing hint describing the key.'],
     ['ts','number','no','Epoch ms.']]},
 {n:'Review', c:'reviews', d:'A traveller review of a company. Moderated unless REVIEW_AUTO_APPROVE is on.',
  f:[['c','string','yes','Company short code, upper-cased. Validated against companies on public submit.'],
@@ -591,8 +955,18 @@ const SCHEMAS = [
     ['status','enum','no','<code>active</code> | <code>rejected</code> | <code>published</code>. Default <code>active</code>. Admin-only field.'],
     ['companyId','ObjectId','no','Set automatically by the publish endpoint. Read-only.'],
     ['notes','string','no','Internal notes. Admin-only field.'],['ts','number','no','Epoch ms.']]},
-{n:'Member', c:'members', d:'A traveller who signed in on the customer portal.',
- f:[['name','string','yes','Max 80.'],['email','string','yes','Unique, validated, lower-cased.'],
+{n:'Member', c:'members', d:'A traveller on the customer portal. Identity capture (POST /api/members) and real accounts (POST /api/auth/customer/register) share this collection — a member with no passwordHash simply cannot sign in yet.',
+ f:[['username','string','no','Login identifier. Unique but <b>sparse</b>, so the many rows without one do not collide. 3-30 characters.'],
+    ['phone','string','no','Also a login identifier. Unique but sparse. Normalised to digits.'],
+    ['passwordHash','string','no','bcrypt. <code>select: false</code> — <b>never returned by any endpoint</b>.'],
+    ['name','string','yes','Max 80.'],['email','string','yes','Unique, validated, lower-cased.'],
+    ['ts','number','no','Epoch ms.']]},
+{n:'Metric', c:'metrics', d:'A headline figure in the customer homepage hero strip. Fully admin-managed — add, reorder, hide or delete.',
+ f:[['icon','string','no','Emoji, max 16. Default <code>""</code>.'],
+    ['value','string','yes','Display <i>text</i>, max 20 — <code>"450+"</code>, <code>"50,000+"</code>. Deliberately not a computed count.'],
+    ['label','string','yes','Max 60, e.g. <code>Verified Companies</code>.'],
+    ['order','number','no','Position, ascending. Default 0; ties fall back to <code>ts</code>.'],
+    ['status','enum','no','<code>published</code> | <code>hidden</code>. Default <code>published</code>.'],
     ['ts','number','no','Epoch ms.']]},
 {n:'Admin', c:'—', d:'An admin account. Not exposed as an admin CRUD collection — create accounts with `npm run create-admin`.',
  f:[['name','string','yes',''],['email','string','yes','Unique, lower-cased.'],
@@ -625,7 +999,8 @@ function curlFor(ep){
   const u = origin + urlFor(ep);
   let s = `curl -X ${ep.m} "${u}"`;
   if (ep.auth) s += ` \\\n  -H "Authorization: Bearer $TOKEN"`;
-  if (ep.sample) s += ` \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(ep.sample)}'`;
+  if (ep.curlExtra) s += ` \\\n  ${ep.curlExtra}`;
+  else if (ep.sample) s += ` \\\n  -H "Content-Type: application/json" \\\n  -d '${JSON.stringify(ep.sample)}'`;
   return esc(s);
 }
 
@@ -674,7 +1049,11 @@ function renderEp(ep){
 
   h += `<h4>cURL</h4>` + code(curlFor(ep));
 
-  // try-it
+  // try-it. Skipped for multipart endpoints — the runner below only sends JSON.
+  if (ep.noTry){
+    h += `<div class="note">${ep.noTryNote || 'Not available in the Try it runner.'}</div></div></details>`;
+    return h;
+  }
   const tryUrl = urlFor(ep).replace(':resource','companies');
   h += `<div class="try" data-m="${ep.m}" data-auth="${ep.auth?1:0}">
       <div class="lbl">Try it — live request against ${esc(origin)}</div>

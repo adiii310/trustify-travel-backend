@@ -1,8 +1,8 @@
-const Enquiry = require('./enquiry.model');
-const crudController = require('../shared/crud.controller');
-const asyncHandler = require('../../utils/asyncHandler');
-const ApiResponse = require('../../utils/ApiResponse');
-const pick = require('../../utils/pick');
+import Enquiry from './enquiry.model.js';
+import crudController from '../shared/crud.controller.js';
+import asyncHandler from '../../utils/asyncHandler.js';
+import ApiResponse from '../../utils/ApiResponse.js';
+import pick from '../../utils/pick.js';
 
 const EDITABLE_FIELDS = ['name', 'phone', 'date', 'pax', 'msg', 'company', 'ck', 'pkg', 'status', 'notes'];
 /** `status` and `notes` stay internal, so the form cannot set them. */
@@ -14,7 +14,7 @@ const submit = asyncHandler(async (req, res) => {
   ApiResponse.created(res, { _id: enquiry._id, status: enquiry.status }, 'Enquiry submitted successfully');
 });
 
-module.exports = {
+export default {
   ...crudController(Enquiry, EDITABLE_FIELDS, { one: 'Enquiry', many: 'Enquiries' }),
   submit,
   EDITABLE_FIELDS,
